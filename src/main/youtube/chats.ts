@@ -1,0 +1,86 @@
+import path from 'path'
+import fs from 'fs'
+import readline from 'readline'
+import { exec } from 'child_process'
+import { ArchiveChat, Chat } from '../../preload/dataType'
+
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+
+let pids: number[] = []
+
+const resourcesPath = path.join(__dirname, '../../resources')
+const command = (videoId: string) =>
+  `${resourcesPath}/yt-dlp.exe https://www.youtube.com/watch?v=${videoId} --skip-download --write-sub -o "${resourcesPath}/out"`
+const chatsFilePath = `${resourcesPath}/out.live_chat.json`
+
+export const gatherArchiveChats = (videoId: string) => {
+  return new Promise<Chat[] | null>((resolve) => {
+    const cp = exec(command(videoId), (err) => {
+      if (err !== null) {
+        resolve(null)
+        return
+      }
+      // yt-dlpはアーカイブにチャットが1件もなかったらファイルを出力しない
+      if (!fs.existsSync(chatsFilePath)) {
+        resolve([])
+        return
+      }
+      try {
+        const readStream = fs.createReadStream(chatsFilePath)
+        const lineStream = readline.createInterface({ input: readStream })
+
+        let chats: Chat[] = []
+        lineStream.on('line', (lineString) => {
+          const { replayChatItemAction } = JSON.parse(lineString) as ArchiveChat
+          const { addChatItemAction } = replayChatItemAction.actions[0]
+          if (addChatItemAction === undefined) {
+            return
+          }
+          const { liveChatTextMessageRenderer } = addChatItemAction.item
+          if (liveChatTextMessageRenderer === undefined) {
+            return
+          }
+          const { id, timestampText, message, authorName, authorExternalChannelId, authorPhoto } =
+            liveChatTextMessageRenderer
+          const content = message.runs.map(({ text }) => text).join('')
+          const author = {
+            id: authorExternalChannelId,
+            name: authorName.simpleText,
+            thumbnails: authorPhoto.thumbnails
+          }
+          const timestamp = timestampText.simpleText
+          const timestampOffset = Number(replayChatItemAction.videoOffsetTimeMsec)
+          chats = [...chats, { id, content, author, timestamp, timestampOffset }]
+        })
+        lineStream.on('close', () => {
+          resolve(chats)
+          fs.unlinkSync(`${resourcesPath}/out.live_chat.json`)
+        })
+      } catch {
+        resolve(null)
+      }
+    })
+    if (cp.pid !== undefined) {
+      pids = [...pids, cp.pid]
+    }
+  })
+}
+
+export const cleanup = () => {
+  pids.forEach((pid) => {
+    try {
+      process.kill(pid)
+    } catch {
+      // error handling
+    }
+  })
+}
+
+process.on('SIGINT', cleanup)
+process.on('SIGTERM', cleanup)
+process.on('SIGQUIT', cleanup)
+process.on('uncaughtException', cleanup)
+
+export const gatherLiveChats = () => {
+  // todo
+}
