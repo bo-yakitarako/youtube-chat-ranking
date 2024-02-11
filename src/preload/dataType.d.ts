@@ -98,7 +98,8 @@ export type ArchiveChat = {
 
 export type RankingUser = {
   id: string
-  fistChatTime: number
+  name: string
+  firstChatTime: number
   lastChatTime: number
 }
 

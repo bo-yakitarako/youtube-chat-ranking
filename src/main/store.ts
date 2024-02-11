@@ -5,6 +5,8 @@ import type {
   ChatObject,
   DurationMode,
   RankingRow,
+  RankingUser,
+  RankingUserObject,
   Video,
   VideoObject
 } from '../preload/dataType'
@@ -15,7 +17,7 @@ import dayjs from 'dayjs'
 const channelStore = new Store<Record<'channels', ChannelObject>>({ name: 'channel' })
 const videoStore = new Store<Record<string, VideoObject>>({ name: 'videos' })
 const chatStore = new Store<Record<string, ChatObject>>({ name: 'chats' })
-// const userStore = new Store<Record<string, RankingUserObject>>({ name: 'users' })
+const userStore = new Store<Record<string, RankingUserObject>>({ name: 'users' })
 
 const CHANNEL_DB = 'channels'
 
@@ -132,7 +134,7 @@ const createRankingDataByVideoIds = (
 ) => {
   const chats = chatStore.get(channelId) ?? {}
   const countData = fetchCountData(chats, videoIds)
-  const rankingDataRaw = assignUserInfoForRanking(chats, videos, countData, isLive)
+  const rankingDataRaw = assignUserInfoForRanking(channelId, chats, videos, countData, isLive)
   const rankingDataSorted = rankingDataRaw.sort((a, b) => b.chatCount - a.chatCount)
   let rank = 1
   return rankingDataSorted.map((data, index, datas) => {
@@ -159,61 +161,82 @@ const fetchCountData = (chats: ChatObject, videoIds: string[]) => {
 }
 
 const assignUserInfoForRanking = (
+  channelId: string,
   chats: ChatObject,
   videos: VideoObject,
   countData: { [id in string]: number },
   isLive = false
 ) => {
+  const todayTime = dayjs().unix()
+  const users = userStore.get(channelId) ?? {}
   if (isLive && Object.keys(chats).length > 0) {
     delete chats[Object.keys(chats)[0]]
   }
   let infoAddedUsers = [] as RankingRow[]
   for (const userId in countData) {
     let breakFlag = false
+    const cachedUser: RankingUser = {
+      id: userId,
+      name: users[userId]?.name ?? '',
+      firstChatTime: users[userId]?.firstChatTime ?? todayTime,
+      lastChatTime: users[userId]?.lastChatTime ?? 0
+    }
+    const dayjsFirstChat = dayjs.unix(cachedUser.firstChatTime)
+    const dayjsLastChat = dayjs.unix(cachedUser.lastChatTime)
     const infoUser = {
       authorChannelId: userId,
       rank: 0,
-      name: '',
+      name: cachedUser.name,
       chatCount: countData[userId],
-      firstChatDate: '',
-      lastChatDate: ''
+      firstChatDate: dayjsFirstChat.format('YYYY/MM/DD'),
+      lastChatDate: dayjsLastChat.format('YYYY/MM/DD')
     }
-    for (const videoId in videos) {
+    const targetVidesoIdsOnLastDate = Object.keys(videos).filter((videoId) =>
+      dayjs(videos[videoId].publishedAt).isAfter(dayjsLastChat)
+    )
+    for (const videoId of targetVidesoIdsOnLastDate) {
       if (!chats[videoId]) {
         continue
       }
       for (const { author } of chats[videoId]) {
         if (author.id === userId) {
+          cachedUser.name = author.name
           infoUser.name = author.name
           breakFlag = true
           break
         }
       }
       if (breakFlag) {
-        const { publishedAt } = videos[videoId]
-        infoUser.lastChatDate = dayjs(publishedAt).format('YYYY/MM/DD')
+        const d = dayjs(videos[videoId].publishedAt)
+        infoUser.lastChatDate = d.format('YYYY/MM/DD')
+        cachedUser.lastChatTime = d.unix()
         break
       }
     }
-    breakFlag = false
-    for (const videoId in chats) {
-      if (!chats[videoId]) {
-        continue
-      }
-      for (const { author } of chats[videoId]) {
-        if (author.id === userId) {
-          breakFlag = true
+    if (cachedUser.firstChatTime === todayTime) {
+      breakFlag = false
+      for (const videoId in chats) {
+        if (!chats[videoId]) {
+          continue
+        }
+        for (const { author } of chats[videoId]) {
+          if (author.id === userId) {
+            breakFlag = true
+            break
+          }
+        }
+        if (breakFlag) {
+          const d = dayjs(videos[videoId].publishedAt)
+          infoUser.firstChatDate = d.format('YYYY/MM/DD')
+          cachedUser.firstChatTime = d.unix()
           break
         }
       }
-      if (breakFlag) {
-        const { publishedAt } = videos[videoId]
-        infoUser.firstChatDate = dayjs(publishedAt).format('YYYY/MM/DD')
-        break
-      }
     }
     infoAddedUsers = [...infoAddedUsers, infoUser]
+    users[userId] = cachedUser
   }
+  userStore.set(channelId, users)
   // 謎の書き込み日付のない透明人間がいたので省いておく
   return infoAddedUsers.filter(({ lastChatDate }) => lastChatDate)
 }
