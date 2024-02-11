@@ -60,25 +60,26 @@ export const getLiveVideosFromYouTube = async (channelId: string) => {
     const ids = videoIds.splice(0, GOOGLE_API_MAX_COUNT) // spliceは元の配列からも削除する
     const { data } = await youtube.videos.list({
       id: ids,
-      part: ['id', 'snippet', 'statistics']
+      part: ['id', 'snippet', 'statistics', 'liveStreamingDetails']
     })
     const videoItems = data.items ?? []
-    const liveVideosPart = videoItems.map((video) => {
-      const { id, snippet, statistics } = video
-      const { title, thumbnails, publishedAt, channelId, channelTitle } = snippet!
-      const { viewCount, likeCount } = statistics!
-      return {
-        id: id!,
-        title: title!,
-        thumbnails: thumbnails!,
-        publishedAt: publishedAt!,
-        channelId: channelId!,
-        channelTitle: channelTitle!,
-        viewCount: viewCount!,
-        likeCount: likeCount!,
-        chatCached: false
-      }
-    })
+    const liveVideosPart = videoItems
+      .filter(({ liveStreamingDetails }) => !liveStreamingDetails?.activeLiveChatId)
+      .map(({ id, snippet, statistics }) => {
+        const { title, thumbnails, publishedAt, channelId, channelTitle } = snippet!
+        const { viewCount, likeCount } = statistics!
+        return {
+          id: id!,
+          title: title!,
+          thumbnails: thumbnails!,
+          publishedAt: publishedAt!,
+          channelId: channelId!,
+          channelTitle: channelTitle!,
+          viewCount: viewCount!,
+          likeCount: likeCount!,
+          chatCached: false
+        }
+      })
     liveVideos = [...liveVideos, ...liveVideosPart]
   }
   return liveVideos

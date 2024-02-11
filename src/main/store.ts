@@ -80,7 +80,10 @@ export const checkCached = () => {
   const videos = videoStore.store ?? {}
   const chats = chatStore.store ?? {}
   for (const channelId of Object.keys(channels)) {
-    const channelVideos = videos[channelId] ?? {}
+    if (!(channelId in videos)) {
+      continue
+    }
+    const channelVideos = videos[channelId]
     const channelChats = chats[channelId] ?? {}
     const cachedVideoIds = Object.keys(channelChats)
     for (const videoId of Object.keys(channelVideos)) {
