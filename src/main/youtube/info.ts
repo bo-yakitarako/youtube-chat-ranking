@@ -4,6 +4,7 @@ import { google } from 'googleapis'
 import { Client } from 'youtubei'
 import type { Video } from '../../preload/dataType'
 import { addChannel } from '../store'
+import axios from 'axios'
 
 config()
 
@@ -63,24 +64,53 @@ export const getLiveVideosFromYouTube = async (channelId: string) => {
       part: ['id', 'snippet', 'statistics', 'liveStreamingDetails']
     })
     const videoItems = data.items ?? []
-    const liveVideosPart = videoItems
-      .filter(({ liveStreamingDetails }) => !liveStreamingDetails?.activeLiveChatId)
-      .map(({ id, snippet, statistics }) => {
-        const { title, thumbnails, publishedAt, channelId, channelTitle } = snippet!
-        const { viewCount, likeCount } = statistics!
-        return {
-          id: id!,
-          title: title!,
-          thumbnails: thumbnails!,
-          publishedAt: publishedAt!,
-          channelId: channelId!,
-          channelTitle: channelTitle!,
-          viewCount: viewCount!,
-          likeCount: likeCount!,
-          chatCached: false
-        }
-      })
-    liveVideos = [...liveVideos, ...liveVideosPart]
+    const liveVideosPart = videoItems.filter(
+      ({ liveStreamingDetails }) => !liveStreamingDetails?.activeLiveChatId
+    )
+    for (const { id, snippet, statistics } of liveVideosPart) {
+      const { title, thumbnails, publishedAt, channelId, channelTitle } = snippet!
+      const { viewCount, likeCount } = statistics!
+      const hiraganaTitle = await convertToHiragana(title ?? '')
+      const video = {
+        id: id!,
+        title: title!,
+        hiraganaTitle,
+        thumbnails: thumbnails!,
+        publishedAt: publishedAt!,
+        channelId: channelId!,
+        channelTitle: channelTitle!,
+        viewCount: viewCount!,
+        likeCount: likeCount!,
+        chatCached: true
+      }
+      liveVideos = [...liveVideos, video]
+    }
   }
   return liveVideos
+}
+
+const HIRAGANA_URL = 'https://labs.goo.ne.jp/api/hiragana'
+const GOO_LAB_API_KEY = process.env.GOO_LAB_API_KEY ?? ''
+const OUTPUT_TYPE = 'hiragana'
+
+type HiraganaResponse = {
+  request_id: string
+  output_type: 'hiragana' | 'katakana'
+  converted: string
+}
+
+export const convertToHiragana = async (japaneseText: string) => {
+  const { data } = await axios<HiraganaResponse>({
+    method: 'post',
+    url: HIRAGANA_URL,
+    headers: {
+      'Content-Type': `application/json`
+    },
+    data: {
+      app_id: GOO_LAB_API_KEY,
+      sentence: japaneseText,
+      output_type: OUTPUT_TYPE
+    }
+  })
+  return data.converted.replaceAll(' ', '').replaceAll('　', '')
 }

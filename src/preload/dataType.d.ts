@@ -11,6 +11,7 @@ export type ChannelObject = { [channelId in string]: Channel }
 export type Video = {
   id: string
   title: string
+  hiraganaTitle: string
   thumbnails: youtube_v3.Schema$ThumbnailDetails
   publishedAt: string
   channelId: string

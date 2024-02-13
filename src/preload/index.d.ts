@@ -15,6 +15,7 @@ declare global {
         durationMode: DurationMode,
         payload?: string | [number, number]
       ) => Promise<RankingRow[]>
+      convertToHiragana: (text: string) => Promise<string>
     }
   }
 }

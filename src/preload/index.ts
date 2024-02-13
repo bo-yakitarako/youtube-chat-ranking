@@ -18,7 +18,8 @@ const api = {
     channelId: string,
     durationMode: DurationMode,
     payload?: string | [Dayjs, Dayjs]
-  ) => ipcRenderer.invoke('fetchRanking', channelId, durationMode, payload)
+  ) => ipcRenderer.invoke('fetchRanking', channelId, durationMode, payload),
+  convertToHiragana: (text: string) => ipcRenderer.invoke('convertToHiragana', text)
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

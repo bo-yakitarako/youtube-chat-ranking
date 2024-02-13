@@ -27,7 +27,7 @@ export const NoVideos: React.FC = () => {
         size="large"
         startIcon={<Send />}
       >
-        {loading ? '取得中...' : '配信アーカイブの取得'}
+        {loading ? '取得中...ちょっち時間もらうわ' : '配信アーカイブの取得'}
       </LoadingButton>
     </PrepareBase>
   )

@@ -2,7 +2,7 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import { getLiveVideosFromYouTube, registerChannel } from './youtube/info'
+import { convertToHiragana, getLiveVideosFromYouTube, registerChannel } from './youtube/info'
 import {
   checkCached,
   createRankingData,
@@ -128,3 +128,9 @@ ipcMain.handle(
   (e, channelId: string, durationMode: DurationMode, payload?: string) =>
     createRankingData(channelId, durationMode, payload)
 )
+
+// @ts-ignore ignoreエクササイズは17回目から効果が出てくる
+ipcMain.handle('convertToHiragana', async (e, text: string) => {
+  const katakanaText = await convertToHiragana(text)
+  return katakanaText
+})
