@@ -1,6 +1,7 @@
 import { useRecoilValue } from 'recoil'
 import { archiveVideoIdAtom, durationModeAtom, videosAtom } from '../../../modules/store'
 import { useMemo } from 'react'
+import { durationTitleDict } from '../../../modules/durationUtils'
 
 export const useRankingHeaderTitle = (): string => {
   const durationMode = useRecoilValue(durationModeAtom)
@@ -8,8 +9,8 @@ export const useRankingHeaderTitle = (): string => {
   const archiveVideoId = useRecoilValue(archiveVideoIdAtom)
 
   const title = useMemo(() => {
-    if (durationMode !== 'pastLive' || videos === null || archiveVideoId === null) {
-      return 'ランキング'
+    if (durationMode !== 'archive' || videos === null || archiveVideoId === null) {
+      return `ランキング: ${durationTitleDict[durationMode]}`
     }
     return videos[archiveVideoId].title
   }, [durationMode, videos, archiveVideoId])

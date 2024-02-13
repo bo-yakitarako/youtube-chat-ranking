@@ -106,8 +106,8 @@ export type RankingUser = {
 export type RankingUserObject = { [channelId in string]: RankingUser }
 
 export type DurationMode =
-  | 'currentLive'
-  | 'pastLive'
+  | 'live'
+  | 'archive'
   | 'thisWeek'
   | 'pastWeek'
   | 'thisMonth'

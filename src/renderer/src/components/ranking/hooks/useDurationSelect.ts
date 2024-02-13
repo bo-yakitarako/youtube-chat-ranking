@@ -1,7 +1,7 @@
 import { useRecoilState } from 'recoil'
 import { durationModeAtom } from '../../../modules/store'
 import { SelectChangeEvent } from '@mui/material'
-import { DurationMode } from '../../../modules/durationUtils'
+import { DurationMode } from '../../../../../preload/dataType'
 
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 export const useDurationSelect = () => {

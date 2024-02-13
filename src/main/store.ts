@@ -104,9 +104,9 @@ export function createRankingData(
   switch (durationMode) {
     case 'all':
       return createRankingDataByVideoIds(channelId, videos, Object.keys(videos))
-    case 'currentLive':
+    case 'live':
       return createRankingDataByVideoIds(channelId, videos, Object.keys(videos), true)
-    case 'pastLive':
+    case 'archive':
       return createRankingDataByVideoIds(channelId, videos, [payload as string])
     default:
       return createRankingDataByDuration(channelId, videos, payload as [number, number])

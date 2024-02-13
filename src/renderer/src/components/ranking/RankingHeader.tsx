@@ -9,6 +9,8 @@ import { useCustomDate } from './hooks/useCustomDate'
 import { useSetRecoilState } from 'recoil'
 import { mainTypeAtom } from '../../modules/store'
 import { useRankingHeaderTitle } from './hooks/useRankingHeaderTitle'
+import { durationTitleDict } from '../../modules/durationUtils'
+import { DurationMode } from '../../../../preload/dataType'
 
 export const RankingHeader: React.FC = () => {
   const [durationDescriptionDialogOpen, setDurationDescriptionDialogOpen] = useState(false)
@@ -50,22 +52,17 @@ export const RankingHeader: React.FC = () => {
             />
           </>
         )}
-        {durationMode === 'pastLive' && (
+        {durationMode === 'archive' && (
           <Button variant="outlined" size="large" onClick={() => setMainType('archiveSearch')}>
             アーカイブ選択
           </Button>
         )}
         <StyledSelect value={durationMode} onChange={onSelect}>
-          <MenuItem value="currentLive">ライブ</MenuItem>
-          <MenuItem value="pastLive">アーカイブ</MenuItem>
-          <MenuItem value="thisWeek">今週</MenuItem>
-          <MenuItem value="pastWeek">週間</MenuItem>
-          <MenuItem value="thisMonth">今月</MenuItem>
-          <MenuItem value="pastMonth">月間</MenuItem>
-          <MenuItem value="thisYear">今年</MenuItem>
-          <MenuItem value="pastYear">年間</MenuItem>
-          <MenuItem value="all">全期間</MenuItem>
-          <MenuItem value="custom">カスタム</MenuItem>
+          {(Object.keys(durationTitleDict) as DurationMode[]).map((mode) => (
+            <MenuItem key={mode} value={mode}>
+              {durationTitleDict[mode]}
+            </MenuItem>
+          ))}
         </StyledSelect>
       </DurationWrapper>
       <DurationDescriptionDialog

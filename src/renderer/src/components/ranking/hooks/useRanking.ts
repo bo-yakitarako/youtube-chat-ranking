@@ -39,10 +39,10 @@ const useRankingPayload = (durationMode: DurationMode) => {
     if (durationMode === 'all') {
       return undefined
     }
-    if (durationMode === 'currentLive') {
+    if (durationMode === 'live') {
       return Object.keys(videos)[0]
     }
-    if (durationMode === 'pastLive') {
+    if (durationMode === 'archive') {
       return archiveVideoId ?? Object.keys(videos)[0]
     }
     if (durationMode === 'custom') {
