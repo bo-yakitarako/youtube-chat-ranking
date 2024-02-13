@@ -55,13 +55,11 @@ const DarkThemeSwitch = styled(Switch)(({ theme }) => ({
       },
       '& + .MuiSwitch-track': {
         opacity: 1,
-        // @ts-ignore paletteの型定義ダルいんだわ
         backgroundColor: theme.palette.mode === 'dark' ? '#8796A5' : '#aab4be'
       }
     }
   },
   '& .MuiSwitch-thumb': {
-    // @ts-ignore paletteの型定義ダルいんだわ
     backgroundColor: theme.palette.mode === 'dark' ? '#003892' : '#001e3c',
     width: 32,
     height: 32,
@@ -81,7 +79,6 @@ const DarkThemeSwitch = styled(Switch)(({ theme }) => ({
   },
   '& .MuiSwitch-track': {
     opacity: 1,
-    // @ts-ignore paletteの型定義ダルいんだわ
     backgroundColor: theme.palette.mode === 'dark' ? '#8796A5' : '#aab4be',
     borderRadius: 20 / 2
   }

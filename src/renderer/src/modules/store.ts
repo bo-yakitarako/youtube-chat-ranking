@@ -28,7 +28,7 @@ export const channelAtom = atom({
   default: channelIdDefault !== null ? window.api.getChannel(channelIdDefault) : null
 })
 
-export type MainType = 'noChannel' | 'noVideos' | 'noChats' | 'ranking'
+export type MainType = 'noChannel' | 'noVideos' | 'noChats' | 'ranking' | 'archiveSearch'
 
 export const mainTypeAtom = atom({
   key: 'mainTypeAtom',
@@ -50,6 +50,11 @@ const endDefault = endDateDefault ? dayjs(endDateDefault) : dayjs()
 export const customDateAtom = atom({
   key: 'customDateAtom',
   default: [startDefault, endDefault] as [Dayjs, Dayjs]
+})
+
+export const archiveVideoIdAtom = atom({
+  key: 'archiveVideoIdAdom',
+  default: null as string | null
 })
 
 export const resetChannelDataSelector = selector({

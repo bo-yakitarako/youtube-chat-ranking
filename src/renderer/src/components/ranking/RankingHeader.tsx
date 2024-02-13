@@ -1,16 +1,19 @@
 import styled from '@emotion/styled'
 import { Info } from '@mui/icons-material'
-import { Box, IconButton, MenuItem, Select, Typography } from '@mui/material'
+import { Box, Button, IconButton, MenuItem, Select, Typography } from '@mui/material'
 import { useState } from 'react'
 import { DurationDescriptionDialog } from './DurationDescriptionDialog'
 import { DatePicker } from '@mui/x-date-pickers'
 import { useDurationSelect } from './hooks/useDurationSelect'
 import { useCustomDate } from './hooks/useCustomDate'
+import { useSetRecoilState } from 'recoil'
+import { mainTypeAtom } from '../../modules/store'
 
 export const RankingHeader: React.FC = () => {
   const [durationDescriptionDialogOpen, setDurationDescriptionDialogOpen] = useState(false)
   const { durationMode, onSelect } = useDurationSelect()
   const { start, end, startHandler, endHandler } = useCustomDate()
+  const setMainType = useSetRecoilState(mainTypeAtom)
   return (
     <Wrapper>
       <Typography component="h2">ランキング</Typography>
@@ -42,6 +45,11 @@ export const RankingHeader: React.FC = () => {
               disableFuture
             />
           </>
+        )}
+        {durationMode === 'pastLive' && (
+          <Button variant="outlined" size="large" onClick={() => setMainType('archiveSearch')}>
+            アーカイブ選択
+          </Button>
         )}
         <StyledSelect value={durationMode} onChange={onSelect}>
           <MenuItem value="currentLive">ライブ</MenuItem>
@@ -76,7 +84,7 @@ const Wrapper = styled(Box)`
 const DurationWrapper = styled(Box)`
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
 `
 
 const StyledSelect = styled(Select)`

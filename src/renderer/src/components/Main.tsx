@@ -6,6 +6,7 @@ import { NoVideos } from './preparing/NoVideos'
 import { NoChats } from './preparing/NoChats'
 import { useRecoilValue } from 'recoil'
 import { darkModeAtom } from '../modules/store'
+import { ArchiveSearch } from './archiveSearch/ArchiveSearch'
 
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
@@ -18,6 +19,7 @@ export const Main: React.FC = () => {
       {mainType === 'noVideos' && <NoVideos />}
       {mainType === 'noChats' && <NoChats />}
       {mainType === 'ranking' && <Ranking />}
+      {mainType === 'archiveSearch' && <ArchiveSearch />}
     </Wrapper>
   )
 }
