@@ -8,15 +8,19 @@ import { useDurationSelect } from './hooks/useDurationSelect'
 import { useCustomDate } from './hooks/useCustomDate'
 import { useSetRecoilState } from 'recoil'
 import { mainTypeAtom } from '../../modules/store'
+import { useRankingHeaderTitle } from './hooks/useRankingHeaderTitle'
 
 export const RankingHeader: React.FC = () => {
   const [durationDescriptionDialogOpen, setDurationDescriptionDialogOpen] = useState(false)
   const { durationMode, onSelect } = useDurationSelect()
   const { start, end, startHandler, endHandler } = useCustomDate()
+  const rankingTitle = useRankingHeaderTitle()
   const setMainType = useSetRecoilState(mainTypeAtom)
   return (
     <Wrapper>
-      <Typography component="h2">ランキング</Typography>
+      <Title>
+        <Typography component="h2">{rankingTitle}</Typography>
+      </Title>
       <DurationWrapper>
         <IconButton
           size="small"
@@ -75,9 +79,18 @@ export const RankingHeader: React.FC = () => {
 const Wrapper = styled(Box)`
   display: flex;
   align-items: center;
+`
+
+const Title = styled(Box)`
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
   > h2 {
-    flex-grow: 1;
-    font-size: 32px;
+    max-width: 420px;
+    font-size: 24px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 `
 

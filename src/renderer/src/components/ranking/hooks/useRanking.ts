@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
 import { DurationMode, RankingRow } from '../../../../../preload/dataType'
 import { useRecoilValue } from 'recoil'
-import { channelIdAtom, customDateAtom, durationModeAtom, videosAtom } from '../../../modules/store'
+import {
+  archiveVideoIdAtom,
+  channelIdAtom,
+  customDateAtom,
+  durationModeAtom,
+  videosAtom
+} from '../../../modules/store'
 import { getDurationDates } from '../../../modules/durationUtils'
 
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
@@ -26,8 +32,9 @@ export const useRanking = () => {
 }
 
 const useRankingPayload = (durationMode: DurationMode) => {
-  const videos = useRecoilValue(videosAtom)!
+  const videos = useRecoilValue(videosAtom) ?? {}
   const customDate = useRecoilValue(customDateAtom)
+  const archiveVideoId = useRecoilValue(archiveVideoIdAtom)
   return useCallback(() => {
     if (durationMode === 'all') {
       return undefined
@@ -36,12 +43,12 @@ const useRankingPayload = (durationMode: DurationMode) => {
       return Object.keys(videos)[0]
     }
     if (durationMode === 'pastLive') {
-      return Object.keys(videos)[0]
+      return archiveVideoId ?? Object.keys(videos)[0]
     }
     if (durationMode === 'custom') {
       return customDate.map((d) => d.unix()) as [number, number]
     }
     const duration = getDurationDates(durationMode)
     return duration.map((d) => d.unix()) as [number, number]
-  }, [durationMode, videos, customDate])
+  }, [durationMode, videos, customDate, archiveVideoId])
 }

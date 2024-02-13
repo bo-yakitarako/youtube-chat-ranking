@@ -7,11 +7,11 @@ import { useArchiveSearch } from './hooks/useArchiveSearch'
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 export const ArchiveSearch: React.FC = () => {
-  const { searchResult, onChange } = useArchiveSearch()
+  const { searchResult, onChange, selectVideo } = useArchiveSearch()
   return (
     <>
       <Header>
-        <Title>アーカイブ検索</Title>
+        <Title>アーカイブ選択</Title>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
           <Search />
           <TextField variant="standard" onChange={onChange} sx={{ width: '320px' }} />
@@ -21,7 +21,7 @@ export const ArchiveSearch: React.FC = () => {
         <Grid container>
           {searchResult.map(({ id, title, date, thumbnail }) => (
             <Grid key={id} xs={3} xl={2}>
-              <Item>
+              <Item onClick={() => selectVideo(id)}>
                 <Typography>{date}</Typography>
                 <img alt="" src={thumbnail} />
                 <Typography>{title}</Typography>

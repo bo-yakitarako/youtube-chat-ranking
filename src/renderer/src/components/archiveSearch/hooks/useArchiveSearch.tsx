@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 import { ChangeEvent, useCallback, useState } from 'react'
-import { useRecoilValue } from 'recoil'
-import { videosAtom } from '../../../modules/store'
+import { useRecoilValue, useSetRecoilState } from 'recoil'
+import { archiveVideoIdAtom, mainTypeAtom, videosAtom } from '../../../modules/store'
 import { Video } from '../../../../../preload/dataType'
 import dayjs from 'dayjs'
 
@@ -15,6 +15,8 @@ type SearchResult = {
 
 export const useArchiveSearch = () => {
   const videoObject = useRecoilValue(videosAtom) ?? {}
+  const setArchiveVideoId = useSetRecoilState(archiveVideoIdAtom)
+  const setMainType = useSetRecoilState(mainTypeAtom)
   const rawVideos = Object.values(videoObject)
 
   const [searchResult, setSearchResult] = useState<SearchResult[]>(convertToSearchResult(rawVideos))
@@ -32,7 +34,12 @@ export const useArchiveSearch = () => {
     [rawVideos]
   )
 
-  return { searchResult, onChange }
+  const selectVideo = (videoId: string) => {
+    setArchiveVideoId(videoId)
+    setMainType('ranking')
+  }
+
+  return { searchResult, onChange, selectVideo }
 }
 
 const convertToSearchResult = (videos: Video[]) =>
