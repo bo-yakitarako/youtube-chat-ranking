@@ -43,9 +43,11 @@ export const useArchiveSearch = () => {
 }
 
 const convertToSearchResult = (videos: Video[]) =>
-  videos.map(({ id, title, thumbnails, publishedAt }) => ({
-    id,
-    title,
-    thumbnail: thumbnails.medium?.url ?? '',
-    date: dayjs(publishedAt).format('YYYY/MM/DD')
-  }))
+  [...videos]
+    .sort((a, b) => (dayjs(a.publishedAt).isBefore(b.publishedAt) ? 1 : -1))
+    .map(({ id, title, thumbnails, publishedAt }) => ({
+      id,
+      title,
+      thumbnail: thumbnails.medium?.url ?? '',
+      date: dayjs(publishedAt).format('YYYY/MM/DD')
+    }))
