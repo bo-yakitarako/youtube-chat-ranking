@@ -20,7 +20,7 @@ export const ArchiveSearch: React.FC = () => {
       <ArchivesWrapper>
         <Grid container>
           {searchResult.map(({ id, title, date, thumbnail }) => (
-            <Grid key={id} xs={3} xl={2}>
+            <Grid item key={id} xs={3} xl={2}>
               <Item onClick={() => selectVideo(id)}>
                 <Typography>{date}</Typography>
                 <img alt="" src={thumbnail} />
