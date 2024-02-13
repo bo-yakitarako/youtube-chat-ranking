@@ -1,21 +1,28 @@
 import styled from '@emotion/styled'
-import { Search } from '@mui/icons-material'
-import { Grid, TextField, Typography } from '@mui/material'
+import { Info, Search } from '@mui/icons-material'
+import { Grid, IconButton, TextField, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { useArchiveSearch } from './hooks/useArchiveSearch'
+import { SearchDetailDialog } from './SearchDetailDialog'
+import { useState } from 'react'
 
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 export const ArchiveSearch: React.FC = () => {
   const { searchResult, onChange, selectVideo } = useArchiveSearch()
+  const [dialogOpen, setDialogOpen] = useState(false)
   return (
     <>
       <Header>
         <Title>アーカイブ選択</Title>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <IconButton color="info" onClick={() => setDialogOpen(true)}>
+            <Info />
+          </IconButton>
           <Search />
           <TextField variant="standard" onChange={onChange} sx={{ width: '320px' }} />
         </Box>
+        <SearchDetailDialog open={dialogOpen} setOpen={setDialogOpen} />
       </Header>
       <ArchivesWrapper>
         <Grid container>
