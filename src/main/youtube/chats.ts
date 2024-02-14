@@ -2,7 +2,7 @@ import path from 'path'
 import fs from 'fs'
 import readline from 'readline'
 import { exec } from 'child_process'
-import { ArchiveChat, Chat } from '../../preload/dataType'
+import { ArchiveChat, ChatCounts } from '../../preload/dataType'
 
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
@@ -14,7 +14,7 @@ const command = (videoId: string) =>
 const chatsFilePath = `${resourcesPath}/out.live_chat.json`
 
 export const gatherArchiveChats = (videoId: string) => {
-  return new Promise<Chat[] | null>((resolve) => {
+  return new Promise<ChatCounts | null>((resolve) => {
     const cp = exec(command(videoId), (err) => {
       if (err !== null) {
         resolve(null)
@@ -22,14 +22,14 @@ export const gatherArchiveChats = (videoId: string) => {
       }
       // yt-dlpはアーカイブにチャットが1件もなかったらファイルを出力しない
       if (!fs.existsSync(chatsFilePath)) {
-        resolve([])
+        resolve({})
         return
       }
       try {
         const readStream = fs.createReadStream(chatsFilePath)
         const lineStream = readline.createInterface({ input: readStream })
 
-        let chats: Chat[] = []
+        const chatCounts: ChatCounts = {}
         lineStream.on('line', (lineString) => {
           const { replayChatItemAction } = JSON.parse(lineString) as ArchiveChat
           const { addChatItemAction } = replayChatItemAction.actions[0]
@@ -40,20 +40,16 @@ export const gatherArchiveChats = (videoId: string) => {
           if (liveChatTextMessageRenderer === undefined) {
             return
           }
-          const { id, timestampText, message, authorName, authorExternalChannelId, authorPhoto } =
-            liveChatTextMessageRenderer
-          const content = message.runs.map(({ text }) => text).join('')
-          const author = {
-            id: authorExternalChannelId,
-            name: authorName.simpleText,
-            thumbnails: authorPhoto.thumbnails
+          const { authorName, authorExternalChannelId } = liveChatTextMessageRenderer
+          if (!(authorExternalChannelId in chatCounts)) {
+            chatCounts[authorExternalChannelId] = { name: authorName.simpleText, count: 1 }
+          } else {
+            chatCounts[authorExternalChannelId].name = authorName.simpleText
+            chatCounts[authorExternalChannelId].count += 1
           }
-          const timestamp = timestampText.simpleText
-          const timestampOffset = Number(replayChatItemAction.videoOffsetTimeMsec)
-          chats = [...chats, { id, content, author, timestamp, timestampOffset }]
         })
         lineStream.on('close', () => {
-          resolve(chats)
+          resolve(chatCounts)
           fs.unlinkSync(`${resourcesPath}/out.live_chat.json`)
         })
       } catch {

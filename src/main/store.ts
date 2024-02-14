@@ -1,10 +1,10 @@
 import Store from 'electron-store'
 import type {
   ChannelObject,
-  Chat,
-  ChatObject,
+  ChatCounts,
+  ChatCountsObject,
   DurationMode,
-  RankingRow,
+  RankingRowObject,
   RankingUser,
   RankingUserObject,
   Video,
@@ -16,7 +16,7 @@ import dayjs from 'dayjs'
 
 const channelStore = new Store<Record<'channels', ChannelObject>>({ name: 'channel' })
 const videoStore = new Store<Record<string, VideoObject>>({ name: 'videos' })
-const chatStore = new Store<Record<string, ChatObject>>({ name: 'chats' })
+const chaCountsStore = new Store<Record<string, ChatCountsObject>>({ name: 'chats' })
 const userStore = new Store<Record<string, RankingUserObject>>({ name: 'users' })
 
 const CHANNEL_DB = 'channels'
@@ -59,10 +59,10 @@ export const getVideos = (channelId: string) => {
   return videoStore.get(channelId)
 }
 
-export const setChats = (channelId: string, videoId: string, chats: Chat[]) => {
-  const oldChatsData = chatStore.get(channelId) ?? {}
-  const newChatsData = { ...oldChatsData, [videoId]: chats }
-  chatStore.set(channelId, newChatsData)
+export const setChats = (channelId: string, videoId: string, chatCounts: ChatCounts) => {
+  const oldChatsData = chaCountsStore.get(channelId) ?? {}
+  const newChatsData = { ...oldChatsData, [videoId]: chatCounts }
+  chaCountsStore.set(channelId, newChatsData)
 }
 
 export const updateChatCached = (channelId: string, videoId: string) => {
@@ -78,7 +78,7 @@ export const updateChatCached = (channelId: string, videoId: string) => {
 export const checkCached = () => {
   const channels = channelStore.get(CHANNEL_DB) ?? {}
   const videos = videoStore.store ?? {}
-  const chats = chatStore.store ?? {}
+  const chats = chaCountsStore.store ?? {}
   for (const channelId of Object.keys(channels)) {
     if (!(channelId in videos)) {
       continue
@@ -105,7 +105,7 @@ export function createRankingData(
     case 'all':
       return createRankingDataByVideoIds(channelId, videos, Object.keys(videos))
     case 'live':
-      return createRankingDataByVideoIds(channelId, videos, Object.keys(videos), true)
+      return {}
     case 'archive':
       return createRankingDataByVideoIds(channelId, videos, [payload as string])
     default:
@@ -132,50 +132,38 @@ const createRankingDataByDuration = (
 const createRankingDataByVideoIds = (
   channelId: string,
   videos: VideoObject,
-  videoIds: string[],
-  isLive = false
+  videoIds: string[]
 ) => {
-  const chats = chatStore.get(channelId) ?? {}
-  const countData = fetchCountData(chats, videoIds)
-  const rankingDataRaw = assignUserInfoForRanking(channelId, chats, videos, countData, isLive)
-  const rankingDataSorted = rankingDataRaw.sort((a, b) => b.chatCount - a.chatCount)
-  let rank = 1
-  return rankingDataSorted.map((data, index, datas) => {
-    if (index > 0 && data.chatCount !== datas[index - 1].chatCount) {
-      rank = index + 1
-    }
-    data.rank = rank
-    return data
-  })
+  const chatCounts = chaCountsStore.get(channelId) ?? {}
+  const countData = fetchCountData(chatCounts, videoIds)
+  return assignUserInfoForRanking(channelId, chatCounts, videos, countData)
 }
 
-const fetchCountData = (chats: ChatObject, videoIds: string[]) => {
-  const userCountDict = {} as { [id in string]: number }
+const fetchCountData = (chatCounts: ChatCountsObject, videoIds: string[]) => {
+  const resultChatCounts = {} as ChatCounts
   videoIds.forEach((videoId) => {
-    const videoChats = chats[videoId] ?? []
-    videoChats.forEach(({ author: { id } }) => {
-      if (!(id in userCountDict)) {
-        userCountDict[id] = 0
+    const videoChatCounts = chatCounts[videoId] ?? {}
+    for (const channelId in videoChatCounts) {
+      if (!(channelId in resultChatCounts)) {
+        resultChatCounts[channelId] = videoChatCounts[channelId]
+        continue
       }
-      userCountDict[id] += 1
-    })
+      resultChatCounts[channelId].count += videoChatCounts[channelId].count
+      resultChatCounts[channelId].name = videoChatCounts[channelId].name
+    }
   })
-  return userCountDict
+  return resultChatCounts
 }
 
 const assignUserInfoForRanking = (
   channelId: string,
-  chats: ChatObject,
+  chatCounts: ChatCountsObject,
   videos: VideoObject,
-  countData: { [id in string]: number },
-  isLive = false
+  countData: ChatCounts
 ) => {
   const todayTime = dayjs().unix()
   const users = userStore.get(channelId) ?? {}
-  if (isLive && Object.keys(chats).length > 0) {
-    delete chats[Object.keys(chats)[0]]
-  }
-  let infoAddedUsers = [] as RankingRow[]
+  const infoAddedUsers = {} as RankingRowObject
   for (const userId in countData) {
     let breakFlag = false
     const cachedUser: RankingUser = {
@@ -188,9 +176,8 @@ const assignUserInfoForRanking = (
     const dayjsLastChat = dayjs.unix(cachedUser.lastChatTime)
     const infoUser = {
       authorChannelId: userId,
-      rank: 0,
-      name: cachedUser.name,
-      chatCount: countData[userId],
+      name: countData[userId].name,
+      chatCount: countData[userId].count,
       firstChatDate: dayjsFirstChat.format('YYYY/MM/DD'),
       lastChatDate: dayjsLastChat.format('YYYY/MM/DD')
     }
@@ -198,13 +185,13 @@ const assignUserInfoForRanking = (
       dayjs(videos[videoId].publishedAt).isAfter(dayjsLastChat)
     )
     for (const videoId of targetVidesoIdsOnLastDate) {
-      if (!chats[videoId]) {
+      if (!chatCounts[videoId]) {
         continue
       }
-      for (const { author } of chats[videoId]) {
-        if (author.id === userId) {
-          cachedUser.name = author.name
-          infoUser.name = author.name
+      const videoChatCounts = chatCounts[videoId]
+      for (const chatUserId in chatCounts[videoId]) {
+        if (chatUserId === userId) {
+          cachedUser.name = infoUser.name = videoChatCounts[chatUserId].name
           breakFlag = true
           break
         }
@@ -218,12 +205,12 @@ const assignUserInfoForRanking = (
     }
     if (cachedUser.firstChatTime === todayTime) {
       breakFlag = false
-      for (const videoId in chats) {
-        if (!chats[videoId]) {
+      for (const videoId in chatCounts) {
+        if (!chatCounts[videoId]) {
           continue
         }
-        for (const { author } of chats[videoId]) {
-          if (author.id === userId) {
+        for (const chatUserId in chatCounts[videoId]) {
+          if (chatUserId === userId) {
             breakFlag = true
             break
           }
@@ -236,10 +223,12 @@ const assignUserInfoForRanking = (
         }
       }
     }
-    infoAddedUsers = [...infoAddedUsers, infoUser]
+    // 謎の書き込み日付のない透明人間がいたので省いておく
+    if (infoUser.lastChatDate) {
+      infoAddedUsers[userId] = infoUser
+    }
     users[userId] = cachedUser
   }
   userStore.set(channelId, users)
-  // 謎の書き込み日付のない透明人間がいたので省いておく
-  return infoAddedUsers.filter(({ lastChatDate }) => lastChatDate)
+  return infoAddedUsers
 }

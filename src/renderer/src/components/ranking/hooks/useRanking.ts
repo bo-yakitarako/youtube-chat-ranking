@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRecoilState, useRecoilValue } from 'recoil'
 import {
   channelIdAtom,
@@ -12,7 +12,7 @@ import { useRankingPayload } from './useRankingPayload'
 
 export const useRanking = () => {
   const [loading, setLoading] = useState(true)
-  const [rankingData, setRankingData] = useRecoilState(rankingDataAtom)
+  const [rankingRowObject, setRankingRowObject] = useRecoilState(rankingDataAtom)
   const channelId = useRecoilValue(channelIdAtom)!
   const durationMode = useRecoilValue(durationModeAtom)
   const customDate = useRecoilValue(customDateAtom)
@@ -21,10 +21,14 @@ export const useRanking = () => {
   useEffect(() => {
     setLoading(true)
     window.api.fetchRanking(channelId, durationMode, getPayload()).then((data) => {
-      setRankingData(data)
+      setRankingRowObject(data)
       setLoading(false)
     })
   }, [durationMode, customDate])
+
+  const rankingData = useMemo(() => {
+    return Object.values(rankingRowObject).sort((a, b) => b.chatCount - a.chatCount)
+  }, [rankingRowObject])
 
   return { loading, rankingData }
 }

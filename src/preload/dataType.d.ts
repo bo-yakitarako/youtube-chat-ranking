@@ -23,19 +23,14 @@ export type Video = {
 
 export type VideoObject = { [videoId in string]: Video }
 
-export type Chat = {
-  id: string
-  content: string
-  author: {
-    id: string
+export type ChatCounts = {
+  [channelId in string]: {
     name: string
-    thumbnails: { url: string; width: number; height: number }[]
+    count: number
   }
-  timestamp: string
-  timestampOffset: number
 }
 
-export type ChatObject = { [videoId in string]: Chat[] }
+export type ChatCountsObject = { [videoId in string]: ChatCounts }
 
 type IconType = 'YOUTUBE_ROUND' | 'MODERATOR'
 
@@ -122,9 +117,10 @@ export type RankingPayload = string | [number, number] | undefined
 
 export type RankingRow = {
   authorChannelId: string
-  rank: number
   name: string
   chatCount: number
   firstChatDate: string
   lastChatDate: string
 }
+
+export type RankingRowObject = { [userId in string]: RankingRow }

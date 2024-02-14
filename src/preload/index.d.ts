@@ -1,5 +1,5 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
-import type { Channel, DurationMode, RankingRow, VideoObject } from './dataType'
+import type { Channel, DurationMode, RankingRowObject, VideoObject } from './dataType'
 
 declare global {
   interface Window {
@@ -14,7 +14,7 @@ declare global {
         channelId: string,
         durationMode: DurationMode,
         payload?: string | [number, number]
-      ) => Promise<RankingRow[]>
+      ) => Promise<RankingRowObject>
       convertToHiragana: (text: string) => Promise<string>
       reloadBackground: (channelId: string) => Promise<void>
     }

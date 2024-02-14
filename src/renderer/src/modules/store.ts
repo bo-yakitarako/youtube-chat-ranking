@@ -1,5 +1,5 @@
 import { atom, selector } from 'recoil'
-import { DurationMode, RankingRow } from '../../../preload/dataType'
+import { DurationMode, RankingRowObject } from '../../../preload/dataType'
 import dayjs, { Dayjs } from 'dayjs'
 
 const darkModeDefault = localStorage.darkMode === 'true'
@@ -59,7 +59,7 @@ export const archiveVideoIdAtom = atom({
 
 export const rankingDataAtom = atom({
   key: 'rankingDataAtom',
-  default: [] as RankingRow[]
+  default: {} as RankingRowObject
 })
 
 export const reloadBackgroundFlagAtom = atom({
