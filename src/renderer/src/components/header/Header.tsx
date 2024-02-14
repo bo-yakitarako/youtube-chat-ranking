@@ -1,40 +1,95 @@
 import styled from '@emotion/styled'
-import { AppBar, Box, FormGroup, Switch, Toolbar, useColorScheme } from '@mui/material'
+import {
+  AppBar,
+  Box,
+  FormGroup,
+  IconButton,
+  Switch,
+  Toolbar,
+  Tooltip,
+  useColorScheme
+} from '@mui/material'
 import { useDarkModeSetting } from './hooks/useDarkModeSetting'
 import { useEffect } from 'react'
 import { ChannelInfo } from './ChannelInfo'
+import { Cached } from '@mui/icons-material'
+import { useRecoilState, useRecoilValue } from 'recoil'
+import { mainTypeAtom, reloadBackgroundFlagAtom } from '../../modules/store'
+
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 const defaultDarkMode = localStorage.darkMode === 'true'
 
 export const Header: React.FC = () => {
   const { isDarkMode, toggleDarkMode } = useDarkModeSetting()
   const { setMode } = useColorScheme()
+  const [reloadBackground, setReloadBackground] = useRecoilState(reloadBackgroundFlagAtom)
+  const mainType = useRecoilValue(mainTypeAtom)
+
+  const reloadBackgroundStart = () => {
+    if (reloadBackground) {
+      return
+    }
+    setReloadBackground(true)
+  }
+
   useEffect(() => {
     const storageSetting = localStorage.darkMode === 'true'
     setMode(storageSetting ? 'dark' : 'light')
   }, [])
+
   return (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static" color="inherit">
         <Toolbar sx={{ height: '75px' }}>
           <ChannelInfo />
-          <DarkThemeSettingWrapper>
+          <OptionWrapper>
+            {mainType === 'ranking' && (
+              <Tooltip title={reloadBackground ? '更新中...' : '更新'}>
+                <IconButton onClick={reloadBackgroundStart}>
+                  <ReloadingContainer animate={reloadBackground}>
+                    <Cached />
+                  </ReloadingContainer>
+                </IconButton>
+              </Tooltip>
+            )}
             <DarkThemeSwitch
               defaultChecked={defaultDarkMode}
               value={isDarkMode}
               onChange={toggleDarkMode}
             />
-          </DarkThemeSettingWrapper>
+          </OptionWrapper>
         </Toolbar>
       </AppBar>
     </Box>
   )
 }
 
-const DarkThemeSettingWrapper = styled(FormGroup)`
+const OptionWrapper = styled(FormGroup)`
   display: flex;
   align-items: center;
+  flex-direction: row;
   gap: 4px;
+`
+
+const ReloadingContainer = styled.span<{ animate: boolean }>`
+  display: inline-flex;
+  align-items: center;
+
+  ${({ animate }) =>
+    animate
+      ? `
+    animation: rotation 2s linear infinite;
+    @keyframes rotation {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+  `
+      : ''}
 `
 
 const DarkThemeSwitch = styled(Switch)(({ theme }) => ({

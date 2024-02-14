@@ -1,5 +1,5 @@
 import { atom, selector } from 'recoil'
-import { DurationMode } from '../../../preload/dataType'
+import { DurationMode, RankingRow } from '../../../preload/dataType'
 import dayjs, { Dayjs } from 'dayjs'
 
 const darkModeDefault = localStorage.darkMode === 'true'
@@ -20,7 +20,7 @@ export const durationModeAtom = atom({
 
 export const channelIdAtom = atom({
   key: 'channelIdAtom',
-  default: channelIdDefault
+  default: channelIdDefault as string | null
 })
 
 export const channelAtom = atom({
@@ -55,6 +55,16 @@ export const customDateAtom = atom({
 export const archiveVideoIdAtom = atom({
   key: 'archiveVideoIdAdom',
   default: null as string | null
+})
+
+export const rankingDataAtom = atom({
+  key: 'rankingDataAtom',
+  default: [] as RankingRow[]
+})
+
+export const reloadBackgroundFlagAtom = atom({
+  key: 'reloadBackgroundFlagAtom',
+  default: true
 })
 
 export const resetChannelDataSelector = selector({

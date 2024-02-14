@@ -3,7 +3,7 @@ import { config } from 'dotenv'
 import { google } from 'googleapis'
 import { Client } from 'youtubei'
 import type { Video } from '../../preload/dataType'
-import { addChannel } from '../store'
+import { addChannel, getVideos } from '../store'
 import axios from 'axios'
 
 config()
@@ -43,8 +43,12 @@ const getLiveVideoIds = async (channelId: string) => {
   const { live } = channel
   let liveVideos = await live.next()
   let videoIds: string[] = []
+  const existedVideos = getVideos(channelId)
   while (liveVideos.length > 0) {
     for (const { id } of liveVideos) {
+      if (id in existedVideos) {
+        continue
+      }
       videoIds = [...videoIds, id]
     }
     liveVideos = await live.next()

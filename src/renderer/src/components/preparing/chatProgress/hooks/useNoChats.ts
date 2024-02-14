@@ -4,6 +4,7 @@ import {
   channelIdAtom,
   chatGatheringVideoIdAtom,
   mainTypeAtom,
+  reloadBackgroundFlagAtom,
   videosAtom
 } from '../../../../modules/store'
 
@@ -12,9 +13,10 @@ import {
 export const useNoChats = () => {
   const [gathering, setGathering] = useState(false)
   const setChatGatheringVideoId = useSetRecoilState(chatGatheringVideoIdAtom)
-  const channelId = useRecoilValue(channelIdAtom)
+  const channelId = useRecoilValue(channelIdAtom)!
   const [videos, setVideos] = useRecoilState(videosAtom)
   const setMainType = useSetRecoilState(mainTypeAtom)
+  const setReloadBackgroundFlag = useSetRecoilState(reloadBackgroundFlagAtom)
 
   const gatherChats = async () => {
     if (videos === null) {
@@ -32,6 +34,7 @@ export const useNoChats = () => {
       setVideos(cachedVideos)
     }
     setGathering(false)
+    setReloadBackgroundFlag(false)
     setMainType('ranking')
   }
 

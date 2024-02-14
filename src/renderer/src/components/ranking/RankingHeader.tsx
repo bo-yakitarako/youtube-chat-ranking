@@ -6,8 +6,8 @@ import { DurationDescriptionDialog } from './DurationDescriptionDialog'
 import { DatePicker } from '@mui/x-date-pickers'
 import { useDurationSelect } from './hooks/useDurationSelect'
 import { useCustomDate } from './hooks/useCustomDate'
-import { useSetRecoilState } from 'recoil'
-import { mainTypeAtom } from '../../modules/store'
+import { useRecoilValue, useSetRecoilState } from 'recoil'
+import { mainTypeAtom, reloadBackgroundFlagAtom } from '../../modules/store'
 import { useRankingHeaderTitle } from './hooks/useRankingHeaderTitle'
 import { durationTitleDict } from '../../modules/durationUtils'
 import { DurationMode } from '../../../../preload/dataType'
@@ -17,7 +17,9 @@ export const RankingHeader: React.FC = () => {
   const { durationMode, onSelect } = useDurationSelect()
   const { start, end, startHandler, endHandler } = useCustomDate()
   const rankingTitle = useRankingHeaderTitle()
+  const reloadBackground = useRecoilValue(reloadBackgroundFlagAtom)
   const setMainType = useSetRecoilState(mainTypeAtom)
+
   return (
     <Wrapper>
       <Title>
@@ -53,11 +55,16 @@ export const RankingHeader: React.FC = () => {
           </>
         )}
         {durationMode === 'archive' && (
-          <Button variant="outlined" size="large" onClick={() => setMainType('archiveSearch')}>
-            アーカイブ選択
+          <Button
+            variant="outlined"
+            size="large"
+            onClick={() => setMainType('archiveSearch')}
+            disabled={reloadBackground}
+          >
+            {reloadBackground ? '更新中はちょいお待ちね' : 'アーカイブ選択'}
           </Button>
         )}
-        <StyledSelect value={durationMode} onChange={onSelect}>
+        <StyledSelect value={durationMode} onChange={onSelect} disabled={reloadBackground}>
           {(Object.keys(durationTitleDict) as DurationMode[]).map((mode) => (
             <MenuItem key={mode} value={mode}>
               {durationTitleDict[mode]}

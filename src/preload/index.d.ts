@@ -16,6 +16,7 @@ declare global {
         payload?: string | [number, number]
       ) => Promise<RankingRow[]>
       convertToHiragana: (text: string) => Promise<string>
+      reloadBackground: (channelId: string) => Promise<void>
     }
   }
 }

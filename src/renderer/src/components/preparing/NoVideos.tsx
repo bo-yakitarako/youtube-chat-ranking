@@ -6,7 +6,7 @@ import { useRecoilValue, useSetRecoilState } from 'recoil'
 import { channelIdAtom, videosAtom } from '../../modules/store'
 
 export const NoVideos: React.FC = () => {
-  const channelId = useRecoilValue(channelIdAtom)
+  const channelId = useRecoilValue(channelIdAtom)!
   const [loading, setLoading] = useState(false)
   const setVideos = useSetRecoilState(videosAtom)
   const loadVideos = async (): Promise<void> => {

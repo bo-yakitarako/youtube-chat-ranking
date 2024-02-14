@@ -134,3 +134,17 @@ ipcMain.handle('convertToHiragana', async (e, text: string) => {
   const katakanaText = await convertToHiragana(text)
   return katakanaText
 })
+
+// @ts-ignore ｲｰｰｰｰﾝ
+ipcMain.handle('reloadBackground', async (e, channelId: string) => {
+  const liveVideos = await getLiveVideosFromYouTube(channelId)
+  mergeVideo(channelId, liveVideos)
+  for (const { id } of liveVideos) {
+    const chats = await gatherArchiveChats(id)
+    if (chats === null) {
+      continue
+    }
+    setChats(channelId, id, chats)
+    updateChatCached(channelId, id)
+  }
+})

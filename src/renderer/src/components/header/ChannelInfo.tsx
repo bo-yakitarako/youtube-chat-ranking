@@ -2,6 +2,8 @@ import styled from '@emotion/styled'
 import { Alert, Box, Button, Snackbar, TextField, Typography } from '@mui/material'
 import { useChannelInfo } from './hooks/useChannelInfo'
 import { LoadingButton } from '@mui/lab'
+import { useRecoilValue } from 'recoil'
+import { reloadBackgroundFlagAtom } from '../../modules/store'
 
 export const ChannelInfo: React.FC = () => {
   const {
@@ -17,14 +19,18 @@ export const ChannelInfo: React.FC = () => {
     notice,
     hideNotice
   } = useChannelInfo()
+  const reloadBackground = useRecoilValue(reloadBackgroundFlagAtom)
+
   return (
     <Wrapper>
       {channel !== null && !channelEdit ? (
         <>
           <ChannelTitle>{channel.channelTitle}</ChannelTitle>
-          <Button variant="outlined" onClick={enableChannelEdit}>
-            チャンネル変更
-          </Button>
+          {!reloadBackground && (
+            <Button variant="outlined" onClick={enableChannelEdit}>
+              チャンネル変更
+            </Button>
+          )}
         </>
       ) : (
         <Form onSubmit={handleSubmit(onSubmit)}>
