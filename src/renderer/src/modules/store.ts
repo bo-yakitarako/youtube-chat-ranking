@@ -63,5 +63,6 @@ export const resetChannelDataSelector = selector({
   set: ({ set }) => {
     set(videosAtom, null)
     set(mainTypeAtom, 'noVideos')
+    set(archiveVideoIdAtom, null)
   }
 })

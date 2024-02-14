@@ -81,7 +81,7 @@ export const getLiveVideosFromYouTube = async (channelId: string) => {
         channelTitle: channelTitle!,
         viewCount: viewCount!,
         likeCount: likeCount!,
-        chatCached: true
+        chatCached: false
       }
       liveVideos = [...liveVideos, video]
     }
