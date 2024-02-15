@@ -1,5 +1,5 @@
 import { atom, selector } from 'recoil'
-import { DurationMode, RankingRowObject } from '../../../preload/dataType'
+import { ChatCounts, DurationMode, RankingRowObject, Video } from '../../../preload/dataType'
 import dayjs, { Dayjs } from 'dayjs'
 
 const darkModeDefault = localStorage.darkMode === 'true'
@@ -69,6 +69,21 @@ export const rankingDataAtom = atom({
 export const reloadBackgroundFlagAtom = atom({
   key: 'reloadBackgroundFlagAtom',
   default: true
+})
+
+export const liveChatCountsAtom = atom({
+  key: 'liveChatCountsAtom',
+  default: {} as ChatCounts
+})
+
+export const liveVideoAtom = atom({
+  key: 'liveVideoAtom',
+  default: null as Video | null
+})
+
+export const cachedUsersAtom = atom({
+  key: 'cachedUsersAtom',
+  default: window.api.getCachedUsers(channelIdDefault ?? '')
 })
 
 export const resetChannelDataSelector = selector({

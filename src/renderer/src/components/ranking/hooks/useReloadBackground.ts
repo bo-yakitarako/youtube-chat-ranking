@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil'
 import {
+  cachedUsersAtom,
   channelIdAtom,
   durationModeAtom,
   rankingDataAtom,
@@ -16,6 +17,7 @@ export const useReloadBackground = () => {
   const [reloadBackgroundFlag, setReloadBackgroundFlag] = useRecoilState(reloadBackgroundFlagAtom)
   const setVideos = useSetRecoilState(videosAtom)
   const setRankingData = useSetRecoilState(rankingDataAtom)
+  const setCachedUsers = useSetRecoilState(cachedUsersAtom)
   const durationMode = useRecoilValue(durationModeAtom)
   const getPayload = useRankingPayload(durationMode)
   useEffect(() => {
@@ -26,6 +28,9 @@ export const useReloadBackground = () => {
           window.api.fetchRanking(channeiId, durationMode, getPayload()).then((rankingData) => {
             setRankingData(rankingData)
             setReloadBackgroundFlag(false)
+          })
+          window.api.getCachedUsers(channeiId).then((users) => {
+            setCachedUsers(users)
           })
         })
       })

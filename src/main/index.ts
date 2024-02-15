@@ -6,6 +6,7 @@ import { convertToHiragana, getLiveVideosFromYouTube, registerChannel } from './
 import {
   checkCached,
   createRankingData,
+  getCachedUsers,
   getChannel,
   getVideos,
   mergeVideo,
@@ -139,7 +140,6 @@ ipcMain.handle('convertToHiragana', async (e, text: string) => {
 
 // @ts-ignore ｲｰｰｰｰﾝ
 ipcMain.handle('reloadBackground', async (e, channelId: string) => {
-  console.log(channelId)
   const liveVideos = await getLiveVideosFromYouTube(channelId)
   mergeVideo(channelId, liveVideos)
   for (const { id } of liveVideos) {
@@ -155,4 +155,9 @@ ipcMain.handle('reloadBackground', async (e, channelId: string) => {
 // @ts-ignore それは無理よぉ！？
 ipcMain.handle('setLiveChannelId', (e, channelId: string | null) => {
   setLiveChat(channelId)
+})
+
+// @ts-ignore なにしとんねん
+ipcMain.handle('getCachedUsers', (e, channelId: string) => {
+  return getCachedUsers(channelId)
 })

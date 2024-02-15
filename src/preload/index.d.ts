@@ -1,5 +1,12 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
-import type { Channel, DurationMode, RankingRowObject, VideoObject } from './dataType'
+import type {
+  Channel,
+  DurationMode,
+  RankingRowObject,
+  RankingUserObject,
+  VideoObject
+} from './dataType'
+import { IpcRenderer } from 'electron'
 
 declare global {
   interface Window {
@@ -18,6 +25,8 @@ declare global {
       convertToHiragana: (text: string) => Promise<string>
       reloadBackground: (channelId: string) => Promise<void>
       setLiveChannelId: (channelId: string) => Promise<void>
+      getCachedUsers: (channelId: string) => Promise<RankingUserObject>
     }
+    ipcRenderer: IpcRenderer
   }
 }

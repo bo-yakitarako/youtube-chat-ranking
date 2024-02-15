@@ -2,7 +2,7 @@ import { channelId as _channelId } from '@gonetone/get-youtube-id-by-url'
 import { config } from 'dotenv'
 import { google } from 'googleapis'
 import { Client } from 'youtubei'
-import type { Video } from '../../preload/dataType'
+import type { ChatCounts, Video } from '../../preload/dataType'
 import { addChannel, getVideos } from '../store'
 import axios from 'axios'
 
@@ -43,7 +43,7 @@ const getLiveVideoIds = async (channelId: string) => {
   const { live } = channel
   let liveVideos = await live.next()
   let videoIds: string[] = []
-  const existedVideos = getVideos(channelId)
+  const existedVideos = getVideos(channelId) ?? {}
   while (liveVideos.length > 0) {
     for (const { id } of liveVideos) {
       if (id in existedVideos) {
@@ -54,6 +54,44 @@ const getLiveVideoIds = async (channelId: string) => {
     liveVideos = await live.next()
   }
   return videoIds
+}
+
+export const getLiveVideo = async (channelId: string) => {
+  const channel = await youtubei.getChannel(channelId)
+  if (channel === undefined) {
+    return null
+  }
+  const live = await channel.live.next(0)
+  if (live.length === 0) {
+    return null
+  }
+  const { id } = live[0]
+  const { data } = await youtube.videos.list({
+    id: [id],
+    part: ['snippet', 'statistics', 'liveStreamingDetails']
+  })
+  console.log(data)
+  const { snippet, statistics, liveStreamingDetails } = data.items![0]
+  if (!liveStreamingDetails?.activeLiveChatId) {
+    return null
+  }
+  const { title, thumbnails, publishedAt, channelTitle } = snippet!
+  const { viewCount, likeCount } = statistics!
+  const { activeLiveChatId } = liveStreamingDetails
+  const hiraganaTitle = await convertToHiragana(title ?? '')
+  const video = {
+    id: id!,
+    title: title!,
+    hiraganaTitle,
+    thumbnails: thumbnails!,
+    publishedAt: publishedAt!,
+    channelId: channelId!,
+    channelTitle: channelTitle!,
+    viewCount: viewCount!,
+    likeCount: likeCount!,
+    chatCached: false
+  }
+  return { video, activeLiveChatId }
 }
 
 const GOOGLE_API_MAX_COUNT = 50
@@ -91,6 +129,41 @@ export const getLiveVideosFromYouTube = async (channelId: string) => {
     }
   }
   return liveVideos
+}
+
+export const getLiveChat = async (liveChatId: string, existedLiveIds: string[]) => {
+  try {
+    const { data } = await youtube.liveChatMessages.list({
+      liveChatId,
+      part: ['id', 'snippet', 'authorDetails']
+    })
+    const existedChatCounts: ChatCounts = {}
+    let chatIds: string[] = []
+    const liveChats = data.items ?? []
+    for (const { id, snippet, authorDetails } of liveChats) {
+      const { channelId, displayName } = authorDetails!
+      if (!channelId || snippet?.type !== 'textMessageEvent') {
+        continue
+      }
+      if (id) {
+        if (existedLiveIds.includes(id)) {
+          continue
+        }
+        chatIds = [...chatIds, id]
+      }
+      if (channelId in existedChatCounts) {
+        existedChatCounts[channelId].count += 1
+        if (displayName) {
+          existedChatCounts[channelId].name = displayName
+        }
+      } else {
+        existedChatCounts[channelId] = { name: displayName ?? '', count: 1 }
+      }
+    }
+    return { chatCounts: existedChatCounts, chatIds }
+  } catch {
+    return { chatCounts: {}, chatIds: [] }
+  }
 }
 
 const HIRAGANA_URL = 'https://labs.goo.ne.jp/api/hiragana'

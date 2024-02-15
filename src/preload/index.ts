@@ -3,7 +3,7 @@ import { electronAPI } from '@electron-toolkit/preload'
 import { DurationMode } from './dataType'
 import { Dayjs } from 'dayjs'
 
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
+/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-explicit-any */
 
 // Custom APIs for renderer
 const api = {
@@ -21,7 +21,8 @@ const api = {
   ) => ipcRenderer.invoke('fetchRanking', channelId, durationMode, payload),
   convertToHiragana: (text: string) => ipcRenderer.invoke('convertToHiragana', text),
   reloadBackground: (channelId: string) => ipcRenderer.invoke('reloadBackground', channelId),
-  setLiveChannelId: (channelId: string) => ipcRenderer.invoke('setLiveChannelId', channelId)
+  setLiveChannelId: (channelId: string) => ipcRenderer.invoke('setLiveChannelId', channelId),
+  getCachedUsers: (channelId: string) => ipcRenderer.invoke('getCachedUsers', channelId)
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to
@@ -31,6 +32,11 @@ if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('electron', electronAPI)
     contextBridge.exposeInMainWorld('api', api)
+    contextBridge.exposeInMainWorld('ipcRenderer', {
+      ...ipcRenderer,
+      on: ipcRenderer.on,
+      removeAllListeners: ipcRenderer.removeAllListeners
+    })
   } catch (error) {
     console.error(error)
   }

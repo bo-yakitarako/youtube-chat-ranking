@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil'
 import {
+  cachedUsersAtom,
   channelIdAtom,
   chatGatheringVideoIdAtom,
   mainTypeAtom,
@@ -17,6 +18,7 @@ export const useNoChats = () => {
   const [videos, setVideos] = useRecoilState(videosAtom)
   const setMainType = useSetRecoilState(mainTypeAtom)
   const setReloadBackgroundFlag = useSetRecoilState(reloadBackgroundFlagAtom)
+  const setCachedUsers = useSetRecoilState(cachedUsersAtom)
 
   const gatherChats = async () => {
     if (videos === null) {
@@ -33,6 +35,8 @@ export const useNoChats = () => {
       }
       setVideos(cachedVideos)
     }
+    const cachedUsers = await window.api.getCachedUsers(channelId)
+    setCachedUsers(cachedUsers)
     setGathering(false)
     setReloadBackgroundFlag(false)
     setMainType('ranking')

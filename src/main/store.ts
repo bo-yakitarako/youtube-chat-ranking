@@ -205,7 +205,7 @@ const assignUserInfoForRanking = (
     }
     if (cachedUser.firstChatTime === todayTime) {
       breakFlag = false
-      for (const videoId in chatCounts) {
+      for (const videoId of Object.keys(videos).reverse()) {
         if (!chatCounts[videoId]) {
           continue
         }
@@ -231,4 +231,9 @@ const assignUserInfoForRanking = (
   }
   userStore.set(channelId, users)
   return infoAddedUsers
+}
+
+export const getCachedUsers = (channelId: string) => {
+  const cachedUsers = userStore.get(channelId) ?? {}
+  return cachedUsers
 }
