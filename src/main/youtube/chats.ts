@@ -3,6 +3,8 @@ import fs from 'fs'
 import readline from 'readline'
 import { exec } from 'child_process'
 import { ArchiveChat, ChatCounts } from '../../preload/dataType'
+import { LiveChat } from 'youtube-chat'
+import { BrowserWindow } from 'electron'
 
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
@@ -12,6 +14,11 @@ const resourcesPath = path.join(__dirname, '../../resources')
 const command = (videoId: string) =>
   `${resourcesPath}/yt-dlp.exe https://www.youtube.com/watch?v=${videoId} --skip-download --write-sub -o "${resourcesPath}/out"`
 const chatsFilePath = `${resourcesPath}/out.live_chat.json`
+
+let isLive = false
+let liveChannelId = ''
+let liveChat: LiveChat | null = null
+let liveChatCounts: ChatCounts = {}
 
 export const gatherArchiveChats = (videoId: string) => {
   return new Promise<ChatCounts | null>((resolve) => {
@@ -60,6 +67,54 @@ export const gatherArchiveChats = (videoId: string) => {
       pids = [...pids, cp.pid]
     }
   })
+}
+
+export const setLiveChat = (channelId: string | null) => {
+  isLive = false
+  liveChatCounts = {}
+  if (channelId === null) {
+    liveChat = null
+    liveChannelId = ''
+    return
+  }
+  liveChannelId = channelId
+  liveChat = new LiveChat({ channelId })
+}
+
+export const observeLive = (window: BrowserWindow) => {
+  setInterval(async () => {
+    if (isLive || liveChat === null) {
+      return
+    }
+    try {
+      isLive = await liveChat.start()
+      if (!isLive) {
+        return
+      }
+      console.log('たまや')
+      liveChat.on('start', (liveId) => {
+        console.log(liveId)
+      })
+      liveChat.on('chat', ({ id, author, message }) => {
+        console.log({ id, author, message })
+        if (author.channelId in liveChatCounts) {
+          liveChatCounts[author.channelId].count += 1
+          liveChatCounts[author.channelId].name = author.name
+        } else {
+          liveChatCounts[author.channelId] = { name: author.name, count: 1 }
+        }
+        window.webContents.send('liveChatCounts', liveChatCounts)
+      })
+      liveChat.on('end', () => {
+        isLive = false
+        liveChat?.stop()
+        console.log('おわりらしい')
+      })
+    } catch {
+      isLive = false
+      liveChat.stop()
+    }
+  }, 1000)
 }
 
 export const cleanup = () => {

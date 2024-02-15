@@ -33,6 +33,7 @@ export const useChannelInfo = () => {
     }
     localStorage.channelId = channelId
     setChannelId(channelId)
+    await window.api.setLiveChannelId(channelId)
     const channel = await window.api.getChannel(channelId)
     setChannel(channel)
     resetData()

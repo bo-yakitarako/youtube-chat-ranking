@@ -12,7 +12,7 @@ import {
   setChats,
   updateChatCached
 } from './store'
-import { cleanup, gatherArchiveChats } from './youtube/chats'
+import { cleanup, gatherArchiveChats, observeLive, setLiveChat } from './youtube/chats'
 import { DurationMode } from '../preload/dataType'
 
 function createWindow(): void {
@@ -32,6 +32,8 @@ function createWindow(): void {
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
   })
+
+  observeLive(mainWindow)
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)
@@ -137,6 +139,7 @@ ipcMain.handle('convertToHiragana', async (e, text: string) => {
 
 // @ts-ignore ｲｰｰｰｰﾝ
 ipcMain.handle('reloadBackground', async (e, channelId: string) => {
+  console.log(channelId)
   const liveVideos = await getLiveVideosFromYouTube(channelId)
   mergeVideo(channelId, liveVideos)
   for (const { id } of liveVideos) {
@@ -147,4 +150,9 @@ ipcMain.handle('reloadBackground', async (e, channelId: string) => {
     setChats(channelId, id, chatCounts)
     updateChatCached(channelId, id)
   }
+})
+
+// @ts-ignore それは無理よぉ！？
+ipcMain.handle('setLiveChannelId', (e, channelId: string | null) => {
+  setLiveChat(channelId)
 })

@@ -4,9 +4,13 @@ import dayjs, { Dayjs } from 'dayjs'
 
 const darkModeDefault = localStorage.darkMode === 'true'
 const durationModeDefault: DurationMode = localStorage.durationMode ?? 'all'
-const channelIdDefault = localStorage.channelId ?? null
+const channelIdDefault: string | null = localStorage.channelId ?? null
 const startDateDefault = localStorage.startDate ?? null
 const endDateDefault = localStorage.endDate ?? null
+
+if (channelIdDefault !== null) {
+  window.api.setLiveChannelId(channelIdDefault)
+}
 
 export const darkModeAtom = atom({
   key: 'darkModeAtom',

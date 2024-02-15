@@ -17,6 +17,7 @@ declare global {
       ) => Promise<RankingRowObject>
       convertToHiragana: (text: string) => Promise<string>
       reloadBackground: (channelId: string) => Promise<void>
+      setLiveChannelId: (channelId: string) => Promise<void>
     }
   }
 }
