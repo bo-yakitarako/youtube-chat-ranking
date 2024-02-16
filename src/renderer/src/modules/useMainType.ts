@@ -11,12 +11,13 @@ export const useMainType = () => {
 
   useEffect(() => {
     let currentType: MainType = 'noChannel'
+    const videoRows = Object.values(videos ?? {})
     if (channel !== null) {
       currentType = 'noVideos'
     }
-    if (videos !== null) {
+    if (videos !== null || videoRows.length > 0) {
       currentType = 'noChats'
-      if (Object.values(videos).every(({ chatCached }) => chatCached)) {
+      if (videoRows.every(({ chatCached }) => chatCached)) {
         currentType = 'ranking'
       }
     }

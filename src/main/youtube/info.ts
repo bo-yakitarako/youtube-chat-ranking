@@ -2,11 +2,13 @@ import { channelId as _channelId } from '@gonetone/get-youtube-id-by-url'
 import { config } from 'dotenv'
 import { google } from 'googleapis'
 import { Client } from 'youtubei'
+import { join } from 'path'
 import type { ChatCounts, Video } from '../../preload/dataType'
 import { addChannel, getChatCounts, getVideos, setChatCounts, setVideos } from '../store'
 import axios from 'axios'
 
-config()
+const path = join(__dirname, '../../.env')
+config({ path })
 
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 

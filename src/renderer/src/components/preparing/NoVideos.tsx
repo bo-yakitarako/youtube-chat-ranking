@@ -1,13 +1,12 @@
 import { LoadingButton } from '@mui/lab'
 import { Greet, PrepareBase } from './PrepareBase'
-import { useState } from 'react'
 import { Send } from '@mui/icons-material'
-import { useRecoilValue, useSetRecoilState } from 'recoil'
-import { channelIdAtom, videosAtom } from '../../modules/store'
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil'
+import { channelIdAtom, reloadBackgroundFlagAtom, videosAtom } from '../../modules/store'
 
 export const NoVideos: React.FC = () => {
   const channelId = useRecoilValue(channelIdAtom)!
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useRecoilState(reloadBackgroundFlagAtom)
   const setVideos = useSetRecoilState(videosAtom)
   const loadVideos = async (): Promise<void> => {
     setLoading(true)
