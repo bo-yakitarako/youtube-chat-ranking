@@ -15,7 +15,7 @@ config({ path })
 const youtubei = new Client()
 const youtube = google.youtube({
   version: 'v3',
-  auth: process.env.YOUTUBE_API_KEY ?? ''
+  auth: import.meta.env.MAIN_VITE_YOUTUBE_API_KEY
 })
 
 export const getChannelID = async (channelURL: string) => {
@@ -192,7 +192,7 @@ export const getLiveChat = async (liveChatId: string, existedLiveIds: string[]) 
 }
 
 const HIRAGANA_URL = 'https://labs.goo.ne.jp/api/hiragana'
-const GOO_LAB_API_KEY = process.env.GOO_LAB_API_KEY ?? ''
+const GOO_LAB_API_KEY = import.meta.env.MAIN_VITE_GOO_LAB_API_KEY
 const OUTPUT_TYPE = 'hiragana'
 
 type HiraganaResponse = {

@@ -13,7 +13,7 @@ import { mergeVideo, addChats, updateChatCached } from '../store'
 
 let pids: number[] = []
 
-const resourcesPath = path.join(__dirname, '../../resources')
+const resourcesPath = path.join(path.resolve('.'), 'resources')
 const command = (videoId: string) =>
   `${resourcesPath}/yt-dlp.exe https://www.youtube.com/watch?v=${videoId} --skip-download --write-sub -o "${resourcesPath}/out"`
 const chatsFilePath = `${resourcesPath}/out.live_chat.json`
