@@ -7,7 +7,7 @@ import { BrowserWindow } from 'electron'
 import { getStream } from 'yt-dm-stream-url'
 import { ArchiveChat, ChatCounts, Video } from '../../preload/dataType'
 import { getLiveChat, getLiveVideo } from './info'
-import { mergeVideo, setChats, updateChatCached } from '../store'
+import { mergeVideo, addChats, updateChatCached } from '../store'
 
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
@@ -100,7 +100,7 @@ export const observeLive = (window: BrowserWindow) => {
       if (isLive && isFinish && liveChannelId !== null) {
         if (liveVideo !== null) {
           mergeVideo(liveChannelId, [liveVideo])
-          setChats(liveChannelId, liveVideo.id, liveChatCounts)
+          addChats(liveChannelId, liveVideo.id, liveChatCounts)
           updateChatCached(liveChannelId, liveVideo.id)
           liveVideo = null
         }

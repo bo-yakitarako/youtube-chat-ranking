@@ -16,7 +16,7 @@ import dayjs from 'dayjs'
 
 const channelStore = new Store<Record<'channels', ChannelObject>>({ name: 'channel' })
 const videoStore = new Store<Record<string, VideoObject>>({ name: 'videos' })
-const chaCountsStore = new Store<Record<string, ChatCountsObject>>({ name: 'chats' })
+const chatCountsStore = new Store<Record<string, ChatCountsObject>>({ name: 'chats' })
 const userStore = new Store<Record<string, RankingUserObject>>({ name: 'users' })
 
 const CHANNEL_DB = 'channels'
@@ -55,14 +55,26 @@ const videoSort = (videos: Video[]) => {
   })
 }
 
-export const getVideos = (channelId: string) => {
-  return videoStore.get(channelId)
+export const setVideos = (channelId: string, value: VideoObject) => {
+  videoStore.set(channelId, value)
 }
 
-export const setChats = (channelId: string, videoId: string, chatCounts: ChatCounts) => {
-  const oldChatsData = chaCountsStore.get(channelId) ?? {}
+export const getVideos = (channelId: string) => {
+  return videoStore.get(channelId) ?? {}
+}
+
+export const addChats = (channelId: string, videoId: string, chatCounts: ChatCounts) => {
+  const oldChatsData = chatCountsStore.get(channelId) ?? {}
   const newChatsData = { ...oldChatsData, [videoId]: chatCounts }
-  chaCountsStore.set(channelId, newChatsData)
+  chatCountsStore.set(channelId, newChatsData)
+}
+
+export const getChatCounts = (channelId: string) => {
+  return chatCountsStore.get(channelId) ?? {}
+}
+
+export const setChatCounts = (channelId: string, value: ChatCountsObject) => {
+  chatCountsStore.set(channelId, value)
 }
 
 export const updateChatCached = (channelId: string, videoId: string) => {
@@ -78,7 +90,7 @@ export const updateChatCached = (channelId: string, videoId: string) => {
 export const checkCached = () => {
   const channels = channelStore.get(CHANNEL_DB) ?? {}
   const videos = videoStore.store ?? {}
-  const chats = chaCountsStore.store ?? {}
+  const chats = chatCountsStore.store ?? {}
   for (const channelId of Object.keys(channels)) {
     if (!(channelId in videos)) {
       continue
@@ -134,7 +146,7 @@ const createRankingDataByVideoIds = (
   videos: VideoObject,
   videoIds: string[]
 ) => {
-  const chatCounts = chaCountsStore.get(channelId) ?? {}
+  const chatCounts = chatCountsStore.get(channelId) ?? {}
   const countData = fetchCountData(chatCounts, videoIds)
   return assignUserInfoForRanking(channelId, chatCounts, videos, countData)
 }

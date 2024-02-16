@@ -2,7 +2,12 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import { convertToHiragana, getLiveVideosFromYouTube, registerChannel } from './youtube/info'
+import {
+  convertToHiragana,
+  deleteNotPublicVideos,
+  getLiveVideosFromYouTube,
+  registerChannel
+} from './youtube/info'
 import {
   checkCached,
   createRankingData,
@@ -10,7 +15,7 @@ import {
   getChannel,
   getVideos,
   mergeVideo,
-  setChats,
+  addChats,
   updateChatCached
 } from './store'
 import { cleanup, gatherArchiveChats, observeLive, setLiveChat } from './youtube/chats'
@@ -120,7 +125,7 @@ ipcMain.handle('gatherChats', async (e, channelId: string, videoId: string) => {
   if (chatCounts === null) {
     return null
   }
-  setChats(channelId, videoId, chatCounts)
+  addChats(channelId, videoId, chatCounts)
   const cachedVideos = updateChatCached(channelId, videoId)
   return cachedVideos
 })
@@ -140,6 +145,7 @@ ipcMain.handle('convertToHiragana', async (e, text: string) => {
 
 // @ts-ignore ｲｰｰｰｰﾝ
 ipcMain.handle('reloadBackground', async (e, channelId: string) => {
+  await deleteNotPublicVideos(channelId)
   const liveVideos = await getLiveVideosFromYouTube(channelId)
   mergeVideo(channelId, liveVideos)
   for (const { id } of liveVideos) {
@@ -147,7 +153,7 @@ ipcMain.handle('reloadBackground', async (e, channelId: string) => {
     if (chatCounts === null) {
       continue
     }
-    setChats(channelId, id, chatCounts)
+    addChats(channelId, id, chatCounts)
     updateChatCached(channelId, id)
   }
 })

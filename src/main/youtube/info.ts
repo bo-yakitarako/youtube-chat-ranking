@@ -3,7 +3,7 @@ import { config } from 'dotenv'
 import { google } from 'googleapis'
 import { Client } from 'youtubei'
 import type { ChatCounts, Video } from '../../preload/dataType'
-import { addChannel, getVideos } from '../store'
+import { addChannel, getChatCounts, getVideos, setChatCounts, setVideos } from '../store'
 import axios from 'axios'
 
 config()
@@ -35,6 +35,30 @@ export const registerChannel = async (channelURL: string) => {
   return channelId
 }
 
+export const deleteNotPublicVideos = async (channelId: string) => {
+  const channel = await youtubei.getChannel(channelId)
+  if (channel === undefined) {
+    return
+  }
+  const { live } = channel
+  let liveVideos = await live.next()
+  let publicVideoIds: string[] = []
+  while (liveVideos.length > 0) {
+    publicVideoIds = [...publicVideoIds, ...liveVideos.map(({ id }) => id)]
+    liveVideos = await live.next()
+  }
+  const existedVideos = getVideos(channelId)
+  const existedChatCounts = getChatCounts(channelId)
+  for (const existedVideoId in existedVideos) {
+    if (!publicVideoIds.includes(existedVideoId)) {
+      delete existedVideos[existedVideoId]
+      delete existedChatCounts[existedVideoId]
+    }
+  }
+  setVideos(channelId, existedVideos)
+  setChatCounts(channelId, existedChatCounts)
+}
+
 const getLiveVideoIds = async (channelId: string) => {
   const channel = await youtubei.getChannel(channelId)
   if (channel === undefined) {
@@ -43,7 +67,7 @@ const getLiveVideoIds = async (channelId: string) => {
   const { live } = channel
   let liveVideos = await live.next()
   let videoIds: string[] = []
-  const existedVideos = getVideos(channelId) ?? {}
+  const existedVideos = getVideos(channelId)
   while (liveVideos.length > 0) {
     for (const { id } of liveVideos) {
       if (id in existedVideos) {
@@ -70,7 +94,6 @@ export const getLiveVideo = async (channelId: string) => {
     id: [id],
     part: ['snippet', 'statistics', 'liveStreamingDetails']
   })
-  console.log(data)
   const { snippet, statistics, liveStreamingDetails } = data.items![0]
   if (!liveStreamingDetails?.activeLiveChatId) {
     return null
