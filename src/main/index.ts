@@ -15,7 +15,7 @@ import {
   getChannel,
   getVideos,
   mergeVideo,
-  addChats,
+  mergeChats,
   updateChatCached
 } from './store'
 import { cleanup, gatherArchiveChats, observeLive, setLiveChat } from './youtube/chats'
@@ -125,7 +125,7 @@ ipcMain.handle('gatherChats', async (e, channelId: string, videoId: string) => {
   if (chatCounts === null) {
     return null
   }
-  addChats(channelId, videoId, chatCounts)
+  mergeChats(channelId, videoId, chatCounts)
   const cachedVideos = updateChatCached(channelId, videoId)
   return cachedVideos
 })
@@ -153,7 +153,7 @@ ipcMain.handle('reloadBackground', async (e, channelId: string) => {
     if (chatCounts === null) {
       continue
     }
-    addChats(channelId, id, chatCounts)
+    mergeChats(channelId, id, chatCounts)
     updateChatCached(channelId, id)
   }
 })
@@ -166,4 +166,12 @@ ipcMain.handle('setLiveChannelId', (e, channelId: string | null) => {
 // @ts-ignore なにしとんねん
 ipcMain.handle('getCachedUsers', (e, channelId: string) => {
   return getCachedUsers(channelId)
+})
+
+// @ts-ignore 特にお前ら3人。わかったか。
+ipcMain.handle('gatherChatAgain', async (e, channelId: string, videoId: string) => {
+  const chatCounts = await gatherArchiveChats(videoId)
+  if (chatCounts !== null) {
+    mergeChats(channelId, videoId, chatCounts)
+  }
 })

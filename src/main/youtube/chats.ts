@@ -24,13 +24,13 @@ let liveStore: LiveStore | null = null
 
 export const gatherArchiveChats = (videoId: string) => {
   return new Promise<ChatCounts | null>((resolve) => {
-    const cp = exec(command(videoId), (err) => {
+    const cp = exec(command(videoId), (err, stdout) => {
       if (err !== null) {
         resolve(null)
         return
       }
       // yt-dlpはアーカイブにチャットが1件もなかったらファイルを出力しない
-      if (!fs.existsSync(chatsFilePath)) {
+      if (!fs.existsSync(chatsFilePath) || stdout.includes('There are no subtitles')) {
         resolve({})
         return
       }

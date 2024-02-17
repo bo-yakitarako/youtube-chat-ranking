@@ -21,7 +21,7 @@ export const useReloadBackground = () => {
   const durationMode = useRecoilValue(durationModeAtom)
   const getPayload = useRankingPayload(durationMode)
   useEffect(() => {
-    if (reloadBackgroundFlag && channeiId !== null) {
+    if (reloadBackgroundFlag && channeiId) {
       window.api.reloadBackground(channeiId).then(() => {
         window.api.getVideos(channeiId).then((videos) => {
           setVideos(videos)

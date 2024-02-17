@@ -22,7 +22,9 @@ const api = {
   convertToHiragana: (text: string) => ipcRenderer.invoke('convertToHiragana', text),
   reloadBackground: (channelId: string) => ipcRenderer.invoke('reloadBackground', channelId),
   setLiveChannelId: (channelId: string) => ipcRenderer.invoke('setLiveChannelId', channelId),
-  getCachedUsers: (channelId: string) => ipcRenderer.invoke('getCachedUsers', channelId)
+  getCachedUsers: (channelId: string) => ipcRenderer.invoke('getCachedUsers', channelId),
+  gatherChatAgain: (channelId: string, videoId: string) =>
+    ipcRenderer.invoke('gatherChatAgain', channelId, videoId)
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

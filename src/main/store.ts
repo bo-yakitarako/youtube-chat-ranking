@@ -65,10 +65,15 @@ export const getVideos = (channelId: string) => {
   return videoStore.get(channelId) ?? {}
 }
 
-export const addChats = (channelId: string, videoId: string, chatCounts: ChatCounts) => {
+export const mergeChats = (channelId: string, videoId: string, chatCounts: ChatCounts) => {
   const oldChatsData = chatCountsStore.get(channelId) ?? {}
-  const newChatsData = { ...oldChatsData, [videoId]: chatCounts }
-  chatCountsStore.set(channelId, newChatsData)
+  if (videoId in oldChatsData) {
+    oldChatsData[videoId] = chatCounts
+    chatCountsStore.set(channelId, oldChatsData)
+  } else {
+    const newChatsData = { ...oldChatsData, [videoId]: chatCounts }
+    chatCountsStore.set(channelId, newChatsData)
+  }
 }
 
 export const getChatCounts = (channelId: string) => {

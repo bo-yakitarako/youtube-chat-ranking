@@ -1,6 +1,14 @@
 import styled from '@emotion/styled'
 import { Info, Search } from '@mui/icons-material'
-import { Grid, IconButton, TextField, Typography } from '@mui/material'
+import {
+  FormControlLabel,
+  FormGroup,
+  Grid,
+  IconButton,
+  TextField,
+  Typography,
+  Checkbox
+} from '@mui/material'
 import { Box } from '@mui/system'
 import { useArchiveSearch } from './hooks/useArchiveSearch'
 import { SearchDetailDialog } from './SearchDetailDialog'
@@ -9,19 +17,24 @@ import { useState } from 'react'
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 export const ArchiveSearch: React.FC = () => {
-  const { searchResult, onChange, selectVideo } = useArchiveSearch()
+  const { searchResult, onChange, selectVideo, isGagheringChatAgain, toggleGatheringCheck } =
+    useArchiveSearch()
   const [dialogOpen, setDialogOpen] = useState(false)
   return (
     <>
       <Header>
         <Title>アーカイブ選択</Title>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+        <FormGroup sx={{ display: 'flex', alignItems: 'center', gap: '4px', flexDirection: 'row' }}>
+          <FormControlLabel
+            control={<Checkbox checked={isGagheringChatAgain} onChange={toggleGatheringCheck} />}
+            label="アーカイブ再取得"
+          />
           <IconButton color="info" onClick={() => setDialogOpen(true)}>
             <Info />
           </IconButton>
           <Search />
-          <TextField variant="standard" onChange={onChange} sx={{ width: '320px' }} />
-        </Box>
+          <TextField variant="standard" onChange={onChange} sx={{ width: '280px' }} />
+        </FormGroup>
         <SearchDetailDialog open={dialogOpen} setOpen={setDialogOpen} />
       </Header>
       <ArchivesWrapper>

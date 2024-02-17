@@ -2,7 +2,14 @@
 
 import { ChangeEvent, useCallback, useState } from 'react'
 import { useRecoilValue, useSetRecoilState } from 'recoil'
-import { archiveVideoIdAtom, mainTypeAtom, videosAtom } from '../../../modules/store'
+import {
+  archiveVideoIdAtom,
+  channelIdAtom,
+  mainTypeAtom,
+  rankingDataAtom,
+  reloadBackgroundFlagAtom,
+  videosAtom
+} from '../../../modules/store'
 import { Video } from '../../../../../preload/dataType'
 import dayjs from 'dayjs'
 
@@ -15,8 +22,12 @@ type SearchResult = {
 
 export const useArchiveSearch = () => {
   const videoObject = useRecoilValue(videosAtom) ?? {}
+  const channelId = useRecoilValue(channelIdAtom)
   const setArchiveVideoId = useSetRecoilState(archiveVideoIdAtom)
   const setMainType = useSetRecoilState(mainTypeAtom)
+  const setReloadBackgroundFlag = useSetRecoilState(reloadBackgroundFlagAtom)
+  const setRanking = useSetRecoilState(rankingDataAtom)
+  const [isGagheringChatAgain, setIsGatheringChatAgain] = useState(false)
   const rawVideos = Object.values(videoObject)
 
   const [searchResult, setSearchResult] = useState<SearchResult[]>(convertToSearchResult(rawVideos))
@@ -36,12 +47,23 @@ export const useArchiveSearch = () => {
     [rawVideos]
   )
 
-  const selectVideo = (videoId: string) => {
+  const selectVideo = async (videoId: string) => {
     setArchiveVideoId(videoId)
     setMainType('ranking')
+    if (isGagheringChatAgain && channelId !== null) {
+      setReloadBackgroundFlag(true)
+      await window.api.gatherChatAgain(channelId, videoId)
+      const rankingObject = await window.api.fetchRanking(channelId, 'archive', videoId)
+      setRanking(rankingObject)
+      setReloadBackgroundFlag(false)
+    }
   }
 
-  return { searchResult, onChange, selectVideo }
+  const toggleGatheringCheck = () => {
+    setIsGatheringChatAgain((value) => !value)
+  }
+
+  return { searchResult, onChange, selectVideo, isGagheringChatAgain, toggleGatheringCheck }
 }
 
 const convertToSearchResult = (videos: Video[]) =>
