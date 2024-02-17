@@ -3,7 +3,7 @@ import { config } from 'dotenv'
 import { google } from 'googleapis'
 import { Client } from 'youtubei'
 import { join } from 'path'
-import type { ChatCounts, Video } from '../../preload/dataType'
+import type { Video } from '../../preload/dataType'
 import { addChannel, getChatCounts, getVideos, setChatCounts, setVideos } from '../store'
 import axios from 'axios'
 
@@ -154,41 +154,6 @@ export const getLiveVideosFromYouTube = async (channelId: string) => {
     }
   }
   return liveVideos
-}
-
-export const getLiveChat = async (liveChatId: string, existedLiveIds: string[]) => {
-  try {
-    const { data } = await youtube.liveChatMessages.list({
-      liveChatId,
-      part: ['id', 'snippet', 'authorDetails']
-    })
-    const existedChatCounts: ChatCounts = {}
-    let chatIds: string[] = []
-    const liveChats = data.items ?? []
-    for (const { id, snippet, authorDetails } of liveChats) {
-      const { channelId, displayName } = authorDetails!
-      if (!channelId || snippet?.type !== 'textMessageEvent') {
-        continue
-      }
-      if (id) {
-        if (existedLiveIds.includes(id)) {
-          continue
-        }
-        chatIds = [...chatIds, id]
-      }
-      if (channelId in existedChatCounts) {
-        existedChatCounts[channelId].count += 1
-        if (displayName) {
-          existedChatCounts[channelId].name = displayName
-        }
-      } else {
-        existedChatCounts[channelId] = { name: displayName ?? '', count: 1 }
-      }
-    }
-    return { chatCounts: existedChatCounts, chatIds }
-  } catch {
-    return { chatCounts: {}, chatIds: [] }
-  }
 }
 
 const HIRAGANA_URL = 'https://labs.goo.ne.jp/api/hiragana'

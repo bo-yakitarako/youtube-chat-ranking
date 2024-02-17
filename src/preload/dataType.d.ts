@@ -124,3 +124,8 @@ export type RankingRow = {
 }
 
 export type RankingRowObject = { [userId in string]: RankingRow }
+
+export type LiveStore = {
+  liveChatCounts: ChatCounts
+  liveChatIds: string[]
+}

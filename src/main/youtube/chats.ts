@@ -5,9 +5,8 @@ import { exec } from 'child_process'
 import { LiveChat } from 'youtube-chat'
 import { BrowserWindow } from 'electron'
 import { getStream } from 'yt-dm-stream-url'
-import { ArchiveChat, ChatCounts, Video } from '../../preload/dataType'
-import { getLiveChat, getLiveVideo } from './info'
-import { mergeVideo, addChats, updateChatCached } from '../store'
+import { ArchiveChat, ChatCounts, LiveStore } from '../../preload/dataType'
+import { getLiveStore, deleteLiveStore, setLiveStore } from '../store'
 
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
@@ -20,10 +19,8 @@ const chatsFilePath = `${resourcesPath}/out.live_chat.json`
 
 let isLive = false
 let liveChannelId = ''
-let liveVideo: Video | null = null
 let liveChat: LiveChat | null = null
-let liveChatCounts: ChatCounts = {}
-let liveChatIds: string[] = []
+let liveStore: LiveStore | null = null
 
 export const gatherArchiveChats = (videoId: string) => {
   return new Promise<ChatCounts | null>((resolve) => {
@@ -77,8 +74,6 @@ export const gatherArchiveChats = (videoId: string) => {
 let mainWindow: BrowserWindow
 export const setLiveChat = (channelId: string | null) => {
   isLive = false
-  liveChatCounts = {}
-  liveChatIds = []
   if (mainWindow) {
     mainWindow.webContents.send('liveVideo', null)
     mainWindow.webContents.send('liveChatCounts', {})
@@ -95,15 +90,15 @@ export const setLiveChat = (channelId: string | null) => {
 
 export const observeLive = (window: BrowserWindow) => {
   mainWindow = window
+  let isLiveStarted: boolean | null = null
   setInterval(async () => {
     await isLiveFinish().then((isFinish) => {
-      if (isLive && isFinish && liveChannelId !== null) {
-        if (liveVideo !== null) {
-          mergeVideo(liveChannelId, [liveVideo])
-          addChats(liveChannelId, liveVideo.id, liveChatCounts)
-          updateChatCached(liveChannelId, liveVideo.id)
-          liveVideo = null
-        }
+      if (isLiveStarted === null) {
+        isLiveStarted = !isFinish
+      }
+      if (isLive && isFinish && liveChannelId) {
+        liveStore = null
+        deleteLiveStore(liveChannelId)
         setLiveChat(liveChannelId)
         mainWindow.webContents.send('finishLive')
       }
@@ -116,30 +111,33 @@ export const observeLive = (window: BrowserWindow) => {
       if (!isLive) {
         return
       }
-      await getLiveVideo(liveChannelId).then(async (live) => {
-        if (live !== null) {
-          const { video, activeLiveChatId } = live
-          liveVideo = video
-          window.webContents.send('liveVideo', video)
-          const { chatCounts, chatIds } = await getLiveChat(activeLiveChatId, liveChatIds)
-          liveChatIds = [...liveChatIds, ...chatIds]
-          liveChatCounts = { ...chatCounts }
-          window.webContents.send('liveChatCounts', liveChatCounts)
+      liveStore = getLiveStore(liveChannelId ?? '')
+      if (liveStore === null) {
+        liveStore = {
+          liveChatCounts: {},
+          liveChatIds: []
         }
-      })
+      }
+      window.webContents.send('liveChatCounts', liveStore.liveChatCounts)
       liveChat.on('chat', ({ id, author }) => {
-        // 謎に2回行われることがあるのでID被りは演算しない
-        if (liveChatIds.includes(id)) {
+        if (liveStore === null) {
           return
         }
-        liveChatIds = [...liveChatIds, id]
-        if (author.channelId in liveChatCounts) {
-          liveChatCounts[author.channelId].count += 1
-          liveChatCounts[author.channelId].name = author.name
-        } else {
-          liveChatCounts[author.channelId] = { name: author.name, count: 1 }
+        // 謎に2回行われることがあるのでID被りは演算しない
+        if (liveStore.liveChatIds.includes(id)) {
+          return
         }
-        window.webContents.send('liveChatCounts', liveChatCounts)
+        liveStore.liveChatIds = [...liveStore.liveChatIds, id]
+        if (author.channelId in liveStore.liveChatCounts) {
+          liveStore.liveChatCounts[author.channelId].count += 1
+          liveStore.liveChatCounts[author.channelId].name = author.name
+        } else {
+          liveStore.liveChatCounts[author.channelId] = { name: author.name, count: 1 }
+        }
+        window.webContents.send('liveChatCounts', liveStore.liveChatCounts)
+        if (liveChannelId) {
+          setLiveStore(liveChannelId, liveStore)
+        }
       })
     } catch {
       isLive = false
@@ -149,7 +147,7 @@ export const observeLive = (window: BrowserWindow) => {
 
 const isLiveFinish = async () => {
   if (liveChannelId === null) {
-    return false
+    return true
   }
   const url = `https://www.youtube.com/channel/${liveChannelId}`
   try {

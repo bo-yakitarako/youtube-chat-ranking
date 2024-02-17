@@ -4,6 +4,7 @@ import type {
   ChatCounts,
   ChatCountsObject,
   DurationMode,
+  LiveStore,
   RankingRowObject,
   RankingUser,
   RankingUserObject,
@@ -18,6 +19,7 @@ const channelStore = new Store<Record<'channels', ChannelObject>>({ name: 'chann
 const videoStore = new Store<Record<string, VideoObject>>({ name: 'videos' })
 const chatCountsStore = new Store<Record<string, ChatCountsObject>>({ name: 'chats' })
 const userStore = new Store<Record<string, RankingUserObject>>({ name: 'users' })
+const liveStore = new Store<Record<string, LiveStore>>({ name: 'live' })
 
 const CHANNEL_DB = 'channels'
 
@@ -248,4 +250,19 @@ const assignUserInfoForRanking = (
 export const getCachedUsers = (channelId: string) => {
   const cachedUsers = userStore.get(channelId) ?? {}
   return cachedUsers
+}
+
+export const getLiveStore = (channelId: string) => {
+  if (!liveStore.has(channelId)) {
+    return null
+  }
+  return liveStore.get(channelId)
+}
+
+export const setLiveStore = (channelId: string, value: LiveStore) => {
+  liveStore.set(channelId, value)
+}
+
+export const deleteLiveStore = (channelId: string) => {
+  liveStore.delete(channelId)
 }
