@@ -6,7 +6,7 @@ import { LiveChat } from 'youtube-chat'
 import { BrowserWindow } from 'electron'
 import { getStream } from 'yt-dm-stream-url'
 import { ArchiveChat, ChatCounts, LiveStore } from '../../preload/dataType'
-import { getLiveStore, deleteLiveStore, setLiveStore } from '../store'
+import { getLiveStore, deleteLiveStore, setLiveStore, getCachedUsers } from '../store'
 
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
@@ -134,10 +134,12 @@ export const observeLive = (window: BrowserWindow) => {
         } else {
           liveStore.liveChatCounts[author.channelId] = { name: author.name, count: 1 }
         }
-        window.webContents.send('liveChatCounts', liveStore.liveChatCounts)
         if (liveChannelId) {
+          const cachedUsers = getCachedUsers(liveChannelId)
+          window.webContents.send('cachedusers', cachedUsers)
           setLiveStore(liveChannelId, liveStore)
         }
+        window.webContents.send('liveChatCounts', liveStore.liveChatCounts)
       })
     } catch {
       isLive = false

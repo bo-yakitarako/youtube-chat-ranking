@@ -34,10 +34,7 @@ export const useRanking = () => {
 
   const rankingData = useMemo(() => {
     const resultRankingObject: RankingRowObject = {}
-    const today = dayjs()
-    const [start, end] = customDate
-    const includeCustom = durationMode === 'custom' && today.isAfter(start) && today.isBefore(end)
-    if (durationMode !== 'archive' || includeCustom) {
+    if (durationMode === 'live') {
       for (const userId in liveChatCounts) {
         const { name, count } = liveChatCounts[userId]
         const cached = cachedUsers[userId]
@@ -65,7 +62,7 @@ export const useRanking = () => {
       }
     }
     return Object.values(resultRankingObject).sort((a, b) => b.chatCount - a.chatCount)
-  }, [rankingRowObject, liveChatCounts, cachedUsers, durationMode, customDate])
+  }, [rankingRowObject, liveChatCounts, cachedUsers, durationMode])
 
   return { loading, rankingData }
 }
