@@ -93,5 +93,6 @@ export const resetChannelDataSelector = selector({
     set(videosAtom, null)
     set(mainTypeAtom, 'noVideos')
     set(archiveVideoIdAtom, null)
+    set(reloadBackgroundFlagAtom, false)
   }
 })

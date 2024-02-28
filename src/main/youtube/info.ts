@@ -28,13 +28,21 @@ export const getChannelID = async (channelURL: string) => {
 }
 
 export const registerChannel = async (channelURL: string) => {
-  const channelId = await getChannelID(channelURL)
-  if (channelId === undefined) {
+  try {
+    const channelId = await getChannelID(channelURL)
+    if (channelId === undefined) {
+      return undefined
+    }
+    const channel = await youtubei.getChannel(channelId)
+    if (channel === undefined) {
+      return undefined
+    }
+    addChannel(channelId, channel.name, channelURL)
+    return channelId
+  } catch (e) {
+    console.error(e)
     return undefined
   }
-  const { name } = (await youtubei.getChannel(channelId))!
-  addChannel(channelId, name, channelURL)
-  return channelId
 }
 
 export const deleteNotPublicVideos = async (channelId: string) => {
