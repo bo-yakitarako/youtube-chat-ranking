@@ -1,6 +1,7 @@
 import { atom, selector } from 'recoil'
 import { ChatCounts, DurationMode, RankingRowObject, Video } from '../../../preload/dataType'
 import dayjs, { Dayjs } from 'dayjs'
+import { SearchResult } from '../components/archiveSearch/hooks/useArchiveSearch'
 
 const darkModeDefault = localStorage.darkMode === 'true'
 const durationModeDefault: DurationMode = localStorage.durationMode ?? 'all'
@@ -84,6 +85,16 @@ export const liveVideoAtom = atom({
 export const cachedUsersAtom = atom({
   key: 'cachedUsersAtom',
   default: window.api.getCachedUsers(channelIdDefault ?? '')
+})
+
+export const archiveSearchValueAtom = atom({
+  key: 'archiveSearchValueAtom',
+  default: ''
+})
+
+export const archiveSearchResultAtom = atom({
+  key: 'archiveSearchResultAtom',
+  default: null as SearchResult[] | null
 })
 
 export const resetChannelDataSelector = selector({

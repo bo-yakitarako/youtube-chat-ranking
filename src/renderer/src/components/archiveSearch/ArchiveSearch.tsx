@@ -17,8 +17,14 @@ import { useState } from 'react'
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 export const ArchiveSearch: React.FC = () => {
-  const { searchResult, onChange, selectVideo, isGagheringChatAgain, toggleGatheringCheck } =
-    useArchiveSearch()
+  const {
+    archiveValue,
+    searchResult,
+    onChange,
+    selectVideo,
+    isGagheringChatAgain,
+    toggleGatheringCheck
+  } = useArchiveSearch()
   const [dialogOpen, setDialogOpen] = useState(false)
   return (
     <>
@@ -33,7 +39,12 @@ export const ArchiveSearch: React.FC = () => {
             <Info />
           </IconButton>
           <Search />
-          <TextField variant="standard" onChange={onChange} sx={{ width: '280px' }} />
+          <TextField
+            variant="standard"
+            value={archiveValue}
+            onChange={onChange}
+            sx={{ width: '280px' }}
+          />
         </FormGroup>
         <SearchDetailDialog open={dialogOpen} setOpen={setDialogOpen} />
       </Header>

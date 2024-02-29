@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 import { ChangeEvent, useCallback, useState } from 'react'
-import { useRecoilValue, useSetRecoilState } from 'recoil'
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil'
 import {
+  archiveSearchResultAtom,
+  archiveSearchValueAtom,
   archiveVideoIdAtom,
   channelIdAtom,
   mainTypeAtom,
@@ -13,7 +15,7 @@ import {
 import { Video } from '../../../../../preload/dataType'
 import dayjs from 'dayjs'
 
-type SearchResult = {
+export type SearchResult = {
   id: string
   title: string
   thumbnail: string
@@ -27,27 +29,41 @@ export const useArchiveSearch = () => {
   const setMainType = useSetRecoilState(mainTypeAtom)
   const setReloadBackgroundFlag = useSetRecoilState(reloadBackgroundFlagAtom)
   const setRanking = useSetRecoilState(rankingDataAtom)
+  const [archiveValue, setArchiveValue] = useRecoilState(archiveSearchValueAtom)
+  const [savedResult, setSavedResult] = useRecoilState(archiveSearchResultAtom)
   const [isGagheringChatAgain, setIsGatheringChatAgain] = useState(false)
+  const [canClick, setCanClick] = useState(true)
   const rawVideos = Object.values(videoObject)
 
-  const [searchResult, setSearchResult] = useState<SearchResult[]>(convertToSearchResult(rawVideos))
+  const [searchResult, setSearchResult] = useState<SearchResult[]>(
+    savedResult ?? convertToSearchResult(rawVideos)
+  )
 
   const onChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
+      const word = e.target.value
+      setArchiveValue(word)
+      setCanClick(false)
       delayProcess(async () => {
-        const word = e.target.value
+        let result: SearchResult[]
         if (word.length === 0) {
-          setSearchResult(convertToSearchResult(rawVideos))
-          return
+          result = convertToSearchResult(rawVideos)
+        } else {
+          const targetVideos = await searchVideos(rawVideos, word)
+          result = convertToSearchResult(targetVideos)
         }
-        const targetVideos = await searchVideos(rawVideos, word)
-        setSearchResult(convertToSearchResult(targetVideos))
+        setSearchResult(result)
+        setSavedResult(result)
+        setCanClick(true)
       }, 500)
     },
     [rawVideos]
   )
 
   const selectVideo = async (videoId: string) => {
+    if (!canClick) {
+      return
+    }
     setArchiveVideoId(videoId)
     setMainType('ranking')
     if (isGagheringChatAgain && channelId !== null) {
@@ -63,7 +79,14 @@ export const useArchiveSearch = () => {
     setIsGatheringChatAgain((value) => !value)
   }
 
-  return { searchResult, onChange, selectVideo, isGagheringChatAgain, toggleGatheringCheck }
+  return {
+    archiveValue,
+    searchResult,
+    onChange,
+    selectVideo,
+    isGagheringChatAgain,
+    toggleGatheringCheck
+  }
 }
 
 const convertToSearchResult = (videos: Video[]) =>
