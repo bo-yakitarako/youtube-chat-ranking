@@ -24,8 +24,9 @@ let liveStore: LiveStore | null = null
 
 export const gatherArchiveChats = (videoId: string) => {
   return new Promise<ChatCounts | null>((resolve) => {
-    const cp = exec(command(videoId), (err, stdout) => {
+    const cp = exec(command(videoId), (err, stdout, stderr) => {
       if (err !== null) {
+        console.error(stderr)
         resolve(null)
         return
       }
@@ -61,7 +62,8 @@ export const gatherArchiveChats = (videoId: string) => {
           resolve(chatCounts)
           fs.unlinkSync(`${resourcesPath}/out.live_chat.json`)
         })
-      } catch {
+      } catch (e) {
+        console.error(e)
         resolve(null)
       }
     })

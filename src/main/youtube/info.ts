@@ -22,7 +22,8 @@ export const getChannelID = async (channelURL: string) => {
   try {
     const id = await _channelId(channelURL)
     return id
-  } catch {
+  } catch (e) {
+    console.error(e)
     return undefined
   }
 }
@@ -87,81 +88,51 @@ const getLiveVideoIds = async (channelId: string) => {
     }
     liveVideos = await live.next()
   }
+  console.log(`既存アーカイブ数: ${Object.keys(existedVideos).length}`)
+  console.log(`取得アーカイブ数: ${videoIds.length}`)
   return videoIds
-}
-
-export const getLiveVideo = async (channelId: string) => {
-  const channel = await youtubei.getChannel(channelId)
-  if (channel === undefined) {
-    return null
-  }
-  const live = await channel.live.next(0)
-  if (live.length === 0) {
-    return null
-  }
-  const { id } = live[0]
-  const { data } = await youtube.videos.list({
-    id: [id],
-    part: ['snippet', 'statistics', 'liveStreamingDetails']
-  })
-  const { snippet, statistics, liveStreamingDetails } = data.items![0]
-  if (!liveStreamingDetails?.activeLiveChatId) {
-    return null
-  }
-  const { title, thumbnails, publishedAt, channelTitle } = snippet!
-  const { viewCount, likeCount } = statistics!
-  const { activeLiveChatId } = liveStreamingDetails
-  const hiraganaTitle = await convertToHiragana(title ?? '')
-  const video = {
-    id: id!,
-    title: title!,
-    hiraganaTitle,
-    thumbnails: thumbnails!,
-    publishedAt: publishedAt!,
-    channelId: channelId!,
-    channelTitle: channelTitle!,
-    viewCount: viewCount!,
-    likeCount: likeCount!,
-    chatCached: false
-  }
-  return { video, activeLiveChatId }
 }
 
 const GOOGLE_API_MAX_COUNT = 50
 
 export const getLiveVideosFromYouTube = async (channelId: string) => {
-  const videoIds = await getLiveVideoIds(channelId)
-  let liveVideos: Video[] = []
-  while (videoIds.length > 0) {
-    const ids = videoIds.splice(0, GOOGLE_API_MAX_COUNT) // spliceは元の配列からも削除する
-    const { data } = await youtube.videos.list({
-      id: ids,
-      part: ['id', 'snippet', 'statistics', 'liveStreamingDetails']
-    })
-    const videoItems = data.items ?? []
-    const liveVideosPart = videoItems.filter(
-      ({ liveStreamingDetails }) => !liveStreamingDetails?.activeLiveChatId
-    )
-    for (const { id, snippet, statistics } of liveVideosPart) {
-      const { title, thumbnails, publishedAt, channelId, channelTitle } = snippet!
-      const { viewCount, likeCount } = statistics!
-      const hiraganaTitle = await convertToHiragana(title ?? '')
-      const video = {
-        id: id!,
-        title: title!,
-        hiraganaTitle,
-        thumbnails: thumbnails!,
-        publishedAt: publishedAt!,
-        channelId: channelId!,
-        channelTitle: channelTitle!,
-        viewCount: viewCount!,
-        likeCount: likeCount!,
-        chatCached: false
+  try {
+    const videoIds = await getLiveVideoIds(channelId)
+    let liveVideos: Video[] = []
+    while (videoIds.length > 0) {
+      const ids = videoIds.splice(0, GOOGLE_API_MAX_COUNT) // spliceは元の配列からも削除する
+      const { data } = await youtube.videos.list({
+        id: ids,
+        part: ['id', 'snippet', 'statistics', 'liveStreamingDetails']
+      })
+      const videoItems = data.items ?? []
+      const liveVideosPart = videoItems.filter(
+        ({ liveStreamingDetails }) => !liveStreamingDetails?.activeLiveChatId
+      )
+      for (const { id, snippet, statistics } of liveVideosPart) {
+        const { title, thumbnails, publishedAt, channelId, channelTitle } = snippet!
+        const { viewCount, likeCount } = statistics!
+        const hiraganaTitle = await convertToHiragana(title ?? '')
+        const video = {
+          id: id!,
+          title: title!,
+          hiraganaTitle,
+          thumbnails: thumbnails!,
+          publishedAt: publishedAt!,
+          channelId: channelId!,
+          channelTitle: channelTitle!,
+          viewCount: viewCount!,
+          likeCount: likeCount!,
+          chatCached: false
+        }
+        liveVideos = [...liveVideos, video]
       }
-      liveVideos = [...liveVideos, video]
     }
+    return liveVideos
+  } catch (e) {
+    console.error(e)
+    return []
   }
-  return liveVideos
 }
 
 const HIRAGANA_URL = 'https://labs.goo.ne.jp/api/hiragana'
