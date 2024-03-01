@@ -11,6 +11,7 @@ import {
 import { useRankingPayload } from './useRankingPayload'
 import { RankingRowObject } from '../../../../../preload/dataType'
 import dayjs from 'dayjs'
+import { useSnackbar } from 'notistack'
 
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
@@ -23,8 +24,8 @@ export const useRanking = () => {
   const liveChatCounts = useRecoilValue(liveChatCountsAtom)
   const cachedUsers = useRecoilValue(cachedUsersAtom)
   const getPayload = useRankingPayload(durationMode)
-  const [displayCopied, setDisplayCopied] = useState(false)
-  const [copiedUserName, setCopiedUserName] = useState('')
+
+  const { enqueueSnackbar } = useSnackbar()
 
   useEffect(() => {
     setLoading(true)
@@ -35,12 +36,22 @@ export const useRanking = () => {
   }, [durationMode, customDate])
 
   const copyUserName = (userName: string) => {
+    if (userName.includes('"')) {
+      userName = userName.replaceAll('"', '\\"')
+    }
+    if (userName.includes(' ') || userName.includes('　')) {
+      userName = `"${userName}"`
+    }
     navigator.clipboard.writeText(userName)
-    setCopiedUserName(userName)
-    setDisplayCopied(true)
+    enqueueSnackbar(`「${userName}」をコピーしました`, {
+      variant: 'success',
+      autoHideDuration: 2000,
+      anchorOrigin: {
+        vertical: 'bottom',
+        horizontal: 'center'
+      }
+    })
   }
-
-  const hideNotice = () => setDisplayCopied(false)
 
   const rankingData = useMemo(() => {
     const resultRankingObject: RankingRowObject = {}
@@ -85,5 +96,5 @@ export const useRanking = () => {
     })
   }, [rankingRowObject, liveChatCounts, cachedUsers, durationMode])
 
-  return { loading, rankingData, displayCopied, copiedUserName, copyUserName, hideNotice }
+  return { loading, rankingData, copyUserName }
 }

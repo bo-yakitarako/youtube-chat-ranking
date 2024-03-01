@@ -1,9 +1,7 @@
 import {
-  Alert,
   Box,
   CircularProgress,
   Paper,
-  Snackbar,
   Table,
   TableBody,
   TableCell,
@@ -17,8 +15,7 @@ import styled from '@emotion/styled'
 import { ContentCopy } from '@mui/icons-material'
 
 export const RankingTable: React.FC = () => {
-  const { loading, rankingData, displayCopied, copiedUserName, copyUserName, hideNotice } =
-    useRanking()
+  const { loading, rankingData, copyUserName } = useRanking()
   return (
     <TableContainer component={Paper} sx={{ flexGrow: 1, marginTop: '16px' }}>
       {loading ? (
@@ -58,17 +55,6 @@ export const RankingTable: React.FC = () => {
           </TableBody>
         </Table>
       )}
-      <Snackbar
-        anchorOrigin={{ horizontal: 'center', vertical: 'bottom' }}
-        open={displayCopied}
-        onClose={hideNotice}
-        key="disabled-channel-notice"
-        autoHideDuration={3000}
-      >
-        <Alert onClose={hideNotice} severity="info" variant="filled" sx={{ width: '100%' }}>
-          「{copiedUserName}」をコピーいたしましたぞ
-        </Alert>
-      </Snackbar>
     </TableContainer>
   )
 }
