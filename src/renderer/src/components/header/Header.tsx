@@ -5,6 +5,7 @@ import {
   FormGroup,
   IconButton,
   Switch,
+  TextField,
   Toolbar,
   Tooltip,
   useColorScheme
@@ -12,9 +13,10 @@ import {
 import { useDarkModeSetting } from './hooks/useDarkModeSetting'
 import { useEffect } from 'react'
 import { ChannelInfo } from './ChannelInfo'
-import { Cached } from '@mui/icons-material'
+import { Cached, Search } from '@mui/icons-material'
 import { useRecoilState, useRecoilValue } from 'recoil'
 import { mainTypeAtom, reloadBackgroundFlagAtom } from '../../modules/store'
+import { useRankingUserSearch } from '../ranking/hooks/useRankingUserSearch'
 
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
@@ -23,6 +25,7 @@ const defaultDarkMode = localStorage.darkMode === 'true'
 export const Header: React.FC = () => {
   const { isDarkMode, toggleDarkMode } = useDarkModeSetting()
   const { setMode } = useColorScheme()
+  const { onChange } = useRankingUserSearch()
   const [reloadBackground, setReloadBackground] = useRecoilState(reloadBackgroundFlagAtom)
   const mainType = useRecoilValue(mainTypeAtom)
 
@@ -45,13 +48,22 @@ export const Header: React.FC = () => {
           <ChannelInfo />
           <OptionWrapper>
             {mainType === 'ranking' && (
-              <Tooltip title={reloadBackground ? '更新中...' : '更新'}>
-                <IconButton onClick={reloadBackgroundStart}>
-                  <ReloadingContainer animate={reloadBackground}>
-                    <Cached />
-                  </ReloadingContainer>
-                </IconButton>
-              </Tooltip>
+              <>
+                <Search />
+                <TextField
+                  size="small"
+                  variant="standard"
+                  placeholder="ユーザー検索"
+                  onChange={onChange}
+                />
+                <Tooltip title={reloadBackground ? '更新中...' : '更新'}>
+                  <IconButton onClick={reloadBackgroundStart}>
+                    <ReloadingContainer animate={reloadBackground}>
+                      <Cached />
+                    </ReloadingContainer>
+                  </IconButton>
+                </Tooltip>
+              </>
             )}
             <DarkThemeSwitch
               defaultChecked={defaultDarkMode}

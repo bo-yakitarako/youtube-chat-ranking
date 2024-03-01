@@ -35,11 +35,9 @@ export const RankingTable: React.FC = () => {
           </TableHead>
           <TableBody>
             {rankingData.map(
-              ({ authorChannelId, name, chatCount, firstChatDate, lastChatDate }, index) => (
+              ({ authorChannelId, name, chatCount, rank, firstChatDate, lastChatDate }, index) => (
                 <TableRow key={authorChannelId}>
-                  <TableCell>
-                    {rankingData[index - 1]?.chatCount === chatCount ? '' : index + 1}
-                  </TableCell>
+                  <TableCell>{rankingData[index - 1]?.rank === rank ? '' : rank}</TableCell>
                   <NameCell>
                     <div onClick={() => copyUserName(name)}>
                       <Typography>{name}</Typography>

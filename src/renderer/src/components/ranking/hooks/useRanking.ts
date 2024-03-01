@@ -12,6 +12,7 @@ import { useRankingPayload } from './useRankingPayload'
 import { RankingRowObject } from '../../../../../preload/dataType'
 import dayjs from 'dayjs'
 import { useSnackbar } from 'notistack'
+import { useRankingUserSearch } from './useRankingUserSearch'
 
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
@@ -23,6 +24,7 @@ export const useRanking = () => {
   const customDate = useRecoilValue(customDateAtom)
   const liveChatCounts = useRecoilValue(liveChatCountsAtom)
   const cachedUsers = useRecoilValue(cachedUsersAtom)
+  const { searchValue } = useRankingUserSearch()
   const getPayload = useRankingPayload(durationMode)
 
   const { enqueueSnackbar } = useSnackbar()
@@ -85,16 +87,18 @@ export const useRanking = () => {
     }
     const rankingRows = Object.values(resultRankingObject).sort((a, b) => b.chatCount - a.chatCount)
     let rank = 1
-    return rankingRows.map((row, index) => {
-      if (index === 0) {
-        return { ...row, rank: 1 }
-      }
-      if (row.chatCount < rankingRows[index - 1].chatCount) {
-        rank = index + 1
-      }
-      return { ...row, rank }
-    })
-  }, [rankingRowObject, liveChatCounts, cachedUsers, durationMode])
+    return rankingRows
+      .map((row, index) => {
+        if (index === 0) {
+          return { ...row, rank: 1 }
+        }
+        if (row.chatCount < rankingRows[index - 1].chatCount) {
+          rank = index + 1
+        }
+        return { ...row, rank }
+      })
+      .filter(({ name }) => name.includes(searchValue))
+  }, [rankingRowObject, liveChatCounts, cachedUsers, durationMode, searchValue])
 
   return { loading, rankingData, copyUserName }
 }

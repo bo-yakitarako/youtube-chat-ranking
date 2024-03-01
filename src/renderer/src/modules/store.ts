@@ -102,6 +102,11 @@ export const isUserSearchAtom = atom({
   default: false
 })
 
+export const rankingUserSearchValueAtom = atom({
+  key: 'rankingUserSearchValueAtom',
+  default: ''
+})
+
 export const resetChannelDataSelector = selector({
   key: 'resetChannelDataSelector',
   get: () => {},
