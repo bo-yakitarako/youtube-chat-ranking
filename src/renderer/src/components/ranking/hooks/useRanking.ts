@@ -62,7 +62,17 @@ export const useRanking = () => {
         resultRankingObject[userId] = user
       }
     }
-    return Object.values(resultRankingObject).sort((a, b) => b.chatCount - a.chatCount)
+    const rankingRows = Object.values(resultRankingObject).sort((a, b) => b.chatCount - a.chatCount)
+    let rank = 1
+    return rankingRows.map((row, index) => {
+      if (index === 0) {
+        return { ...row, rank: 1 }
+      }
+      if (row.chatCount < rankingRows[index - 1].chatCount) {
+        rank = index + 1
+      }
+      return { ...row, rank }
+    })
   }, [rankingRowObject, liveChatCounts, cachedUsers, durationMode])
 
   return { loading, rankingData }
