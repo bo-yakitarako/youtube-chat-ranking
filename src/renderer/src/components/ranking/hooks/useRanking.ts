@@ -23,6 +23,8 @@ export const useRanking = () => {
   const liveChatCounts = useRecoilValue(liveChatCountsAtom)
   const cachedUsers = useRecoilValue(cachedUsersAtom)
   const getPayload = useRankingPayload(durationMode)
+  const [displayCopied, setDisplayCopied] = useState(false)
+  const [copiedUserName, setCopiedUserName] = useState('')
 
   useEffect(() => {
     setLoading(true)
@@ -31,6 +33,14 @@ export const useRanking = () => {
       setLoading(false)
     })
   }, [durationMode, customDate])
+
+  const copyUserName = (userName: string) => {
+    navigator.clipboard.writeText(userName)
+    setCopiedUserName(userName)
+    setDisplayCopied(true)
+  }
+
+  const hideNotice = () => setDisplayCopied(false)
 
   const rankingData = useMemo(() => {
     const resultRankingObject: RankingRowObject = {}
@@ -75,5 +85,5 @@ export const useRanking = () => {
     })
   }, [rankingRowObject, liveChatCounts, cachedUsers, durationMode])
 
-  return { loading, rankingData }
+  return { loading, rankingData, displayCopied, copiedUserName, copyUserName, hideNotice }
 }
