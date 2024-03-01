@@ -8,12 +8,15 @@ import {
   TextField,
   Typography,
   Checkbox,
-  CircularProgress
+  CircularProgress,
+  Button
 } from '@mui/material'
 import { Box } from '@mui/system'
 import { useArchiveSearch } from './hooks/useArchiveSearch'
 import { SearchDetailDialog } from './SearchDetailDialog'
 import { useState } from 'react'
+import { useSetRecoilState } from 'recoil'
+import { mainTypeAtom } from '../../modules/store'
 
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
@@ -28,11 +31,20 @@ export const ArchiveSearch: React.FC = () => {
     toggleUserSearch
   } = useArchiveSearch()
   const [dialogOpen, setDialogOpen] = useState(false)
+  const setMainType = useSetRecoilState(mainTypeAtom)
   return (
     <>
       <Header>
         <Title>アーカイブ選択</Title>
         <FormGroup sx={{ display: 'flex', alignItems: 'center', gap: '4px', flexDirection: 'row' }}>
+          <Button
+            variant="outlined"
+            color="secondary"
+            sx={{ marginRight: '8px' }}
+            onClick={() => setMainType('ranking')}
+          >
+            戻る
+          </Button>
           <FormControlLabel
             control={<Checkbox checked={isUserSearch} onChange={toggleUserSearch} />}
             disabled={loading}

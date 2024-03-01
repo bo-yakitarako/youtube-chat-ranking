@@ -54,16 +54,14 @@ export const RankingHeader: React.FC = () => {
             />
           </>
         )}
-        {durationMode === 'archive' && (
-          <Button
-            variant="outlined"
-            size="large"
-            onClick={() => setMainType('archiveSearch')}
-            disabled={reloadBackground}
-          >
-            {reloadBackground ? '更新中はちょいお待ちね' : 'アーカイブ選択'}
-          </Button>
-        )}
+        <Button
+          variant="outlined"
+          size="large"
+          onClick={() => setMainType('archiveSearch')}
+          disabled={reloadBackground}
+        >
+          {reloadBackground ? '更新中はちょいお待ちね' : 'アーカイブ選択'}
+        </Button>
         <StyledSelect value={durationMode} onChange={onSelect} disabled={reloadBackground}>
           {(Object.keys(durationTitleDict) as DurationMode[]).map((mode) => (
             <MenuItem key={mode} value={mode}>

@@ -7,6 +7,7 @@ import {
   archiveSearchValueAtom,
   archiveVideoIdAtom,
   channelIdAtom,
+  durationModeAtom,
   isUserSearchAtom,
   mainTypeAtom,
   videosAtom
@@ -25,6 +26,7 @@ export const useArchiveSearch = () => {
   const videoObject = useRecoilValue(videosAtom) ?? {}
   const setArchiveVideoId = useSetRecoilState(archiveVideoIdAtom)
   const setMainType = useSetRecoilState(mainTypeAtom)
+  const setDurationMode = useSetRecoilState(durationModeAtom)
   const [archiveValue, setArchiveValue] = useRecoilState(archiveSearchValueAtom)
   const [savedResult, setSavedResult] = useRecoilState(archiveSearchResultAtom)
   const [isUserSearch, setIsUserSearch] = useRecoilState(isUserSearchAtom)
@@ -75,6 +77,7 @@ export const useArchiveSearch = () => {
       return
     }
     setArchiveVideoId(videoId)
+    setDurationMode('archive')
     setMainType('ranking')
   }
 
