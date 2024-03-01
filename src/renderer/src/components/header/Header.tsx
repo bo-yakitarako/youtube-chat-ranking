@@ -25,7 +25,7 @@ const defaultDarkMode = localStorage.darkMode === 'true'
 export const Header: React.FC = () => {
   const { isDarkMode, toggleDarkMode } = useDarkModeSetting()
   const { setMode } = useColorScheme()
-  const { onChange } = useRankingUserSearch()
+  const { searchValue, onChange } = useRankingUserSearch()
   const [reloadBackground, setReloadBackground] = useRecoilState(reloadBackgroundFlagAtom)
   const mainType = useRecoilValue(mainTypeAtom)
 
@@ -54,6 +54,7 @@ export const Header: React.FC = () => {
                   size="small"
                   variant="standard"
                   placeholder="ユーザー検索"
+                  defaultValue={searchValue}
                   onChange={onChange}
                 />
                 <Tooltip title={reloadBackground ? '更新中...' : '更新'}>
