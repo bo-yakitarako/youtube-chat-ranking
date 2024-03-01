@@ -26,7 +26,7 @@ declare global {
       reloadBackground: (channelId: string) => Promise<void>
       setLiveChannelId: (channelId: string) => Promise<void>
       getCachedUsers: (channelId: string) => Promise<RankingUserObject>
-      gatherChatAgain: (channelId: string, videoId: string) => Promise<void>
+      searchVideoIdsByUser: (channelId: string, words: string[]) => Promise<string[]>
     }
     ipcRenderer: IpcRenderer
   }

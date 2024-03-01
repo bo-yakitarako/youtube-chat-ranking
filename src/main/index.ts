@@ -16,7 +16,8 @@ import {
   getVideos,
   mergeVideo,
   mergeChats,
-  updateChatCached
+  updateChatCached,
+  searchVideoIdsByUser
 } from './store'
 import { cleanup, gatherArchiveChats, observeLive, setLiveChat } from './youtube/chats'
 import { DurationMode } from '../preload/dataType'
@@ -168,10 +169,7 @@ ipcMain.handle('getCachedUsers', (e, channelId: string) => {
   return getCachedUsers(channelId)
 })
 
-// @ts-ignore 特にお前ら3人。わかったか。
-ipcMain.handle('gatherChatAgain', async (e, channelId: string, videoId: string) => {
-  const chatCounts = await gatherArchiveChats(channelId, videoId)
-  if (chatCounts !== null) {
-    mergeChats(channelId, videoId, chatCounts)
-  }
+// @ts-ignore プリンは栄養たっぷりん言うてな！
+ipcMain.handle('searchVideoIdsByUser', (e, channelId: string, words: string[]) => {
+  return searchVideoIdsByUser(channelId, words)
 })

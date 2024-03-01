@@ -97,6 +97,11 @@ export const archiveSearchResultAtom = atom({
   default: null as SearchResult[] | null
 })
 
+export const isUserSearchAtom = atom({
+  key: 'isUserSearchAtom',
+  default: false
+})
+
 export const resetChannelDataSelector = selector({
   key: 'resetChannelDataSelector',
   get: () => {},

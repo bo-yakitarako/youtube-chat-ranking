@@ -285,3 +285,33 @@ export const deleteVideo = (channelId: string, videoId: string) => {
     chatCountsStore.set(channelId, chatCounts)
   }
 }
+
+export const searchVideoIdsByUser = (channelId: string, words: string[]) => {
+  const chatCounts = chatCountsStore.get(channelId) ?? {}
+  let userIds = [] as string[]
+  words.forEach((userName) => {
+    let breakFlag = false
+    for (const videoId in chatCounts) {
+      for (const userId in chatCounts[videoId]) {
+        if (userName === chatCounts[videoId][userId].name) {
+          userIds = [...userIds, userId]
+          breakFlag = true
+          break
+        }
+      }
+      if (breakFlag) {
+        break
+      }
+    }
+  })
+  if (userIds.length === 0) {
+    return []
+  }
+  let resultVideoIds = [] as string[]
+  for (const videoId in chatCounts) {
+    if (userIds.every((userId) => userId in chatCounts[videoId])) {
+      resultVideoIds = [...resultVideoIds, videoId]
+    }
+  }
+  return resultVideoIds
+}

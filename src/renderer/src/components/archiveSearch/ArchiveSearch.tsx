@@ -7,7 +7,8 @@ import {
   IconButton,
   TextField,
   Typography,
-  Checkbox
+  Checkbox,
+  CircularProgress
 } from '@mui/material'
 import { Box } from '@mui/system'
 import { useArchiveSearch } from './hooks/useArchiveSearch'
@@ -18,12 +19,13 @@ import { useState } from 'react'
 
 export const ArchiveSearch: React.FC = () => {
   const {
+    loading,
     archiveValue,
     searchResult,
     onChange,
     selectVideo,
-    isGagheringChatAgain,
-    toggleGatheringCheck
+    isUserSearch,
+    toggleUserSearch
   } = useArchiveSearch()
   const [dialogOpen, setDialogOpen] = useState(false)
   return (
@@ -32,8 +34,9 @@ export const ArchiveSearch: React.FC = () => {
         <Title>アーカイブ選択</Title>
         <FormGroup sx={{ display: 'flex', alignItems: 'center', gap: '4px', flexDirection: 'row' }}>
           <FormControlLabel
-            control={<Checkbox checked={isGagheringChatAgain} onChange={toggleGatheringCheck} />}
-            label="アーカイブ再取得"
+            control={<Checkbox checked={isUserSearch} onChange={toggleUserSearch} />}
+            disabled={loading}
+            label="ユーザー検索"
           />
           <IconButton color="info" onClick={() => setDialogOpen(true)}>
             <Info />
@@ -41,7 +44,7 @@ export const ArchiveSearch: React.FC = () => {
           <Search />
           <TextField
             variant="standard"
-            value={archiveValue}
+            defaultValue={archiveValue}
             onChange={onChange}
             sx={{ width: '280px' }}
           />
@@ -49,17 +52,23 @@ export const ArchiveSearch: React.FC = () => {
         <SearchDetailDialog open={dialogOpen} setOpen={setDialogOpen} />
       </Header>
       <ArchivesWrapper>
-        <Grid container>
-          {searchResult.map(({ id, title, date, thumbnail }) => (
-            <Grid item key={id} xs={3} xl={2}>
-              <Item onClick={() => selectVideo(id)}>
-                <Typography>{date}</Typography>
-                <img alt="" src={thumbnail} />
-                <Typography>{title}</Typography>
-              </Item>
-            </Grid>
-          ))}
-        </Grid>
+        {loading ? (
+          <LoadingWrapper>
+            <CircularProgress />
+          </LoadingWrapper>
+        ) : (
+          <Grid container>
+            {searchResult.map(({ id, title, date, thumbnail }) => (
+              <Grid item key={id} xs={3} xl={2}>
+                <Item onClick={() => selectVideo(id)}>
+                  <Typography>{date}</Typography>
+                  <img alt="" src={thumbnail} />
+                  <Typography>{title}</Typography>
+                </Item>
+              </Grid>
+            ))}
+          </Grid>
+        )}
       </ArchivesWrapper>
     </>
   )
@@ -80,6 +89,14 @@ const ArchivesWrapper = styled(Box)`
   flex-grow: 1;
   margin-top: 16px;
   overflow-y: scroll;
+`
+
+const LoadingWrapper = styled(Box)`
+  display: flex;
+  width: 100%;
+  height: 100%;
+  justify-content: center;
+  align-items: center;
 `
 
 const Item = styled(Box)`

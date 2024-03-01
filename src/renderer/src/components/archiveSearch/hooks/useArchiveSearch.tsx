@@ -7,9 +7,8 @@ import {
   archiveSearchValueAtom,
   archiveVideoIdAtom,
   channelIdAtom,
+  isUserSearchAtom,
   mainTypeAtom,
-  rankingDataAtom,
-  reloadBackgroundFlagAtom,
   videosAtom
 } from '../../../modules/store'
 import { Video } from '../../../../../preload/dataType'
@@ -24,40 +23,51 @@ export type SearchResult = {
 
 export const useArchiveSearch = () => {
   const videoObject = useRecoilValue(videosAtom) ?? {}
-  const channelId = useRecoilValue(channelIdAtom)
   const setArchiveVideoId = useSetRecoilState(archiveVideoIdAtom)
   const setMainType = useSetRecoilState(mainTypeAtom)
-  const setReloadBackgroundFlag = useSetRecoilState(reloadBackgroundFlagAtom)
-  const setRanking = useSetRecoilState(rankingDataAtom)
   const [archiveValue, setArchiveValue] = useRecoilState(archiveSearchValueAtom)
   const [savedResult, setSavedResult] = useRecoilState(archiveSearchResultAtom)
-  const [isGagheringChatAgain, setIsGatheringChatAgain] = useState(false)
+  const [isUserSearch, setIsUserSearch] = useRecoilState(isUserSearchAtom)
   const [canClick, setCanClick] = useState(true)
+  const [loading, setLoading] = useState(false)
   const rawVideos = Object.values(videoObject)
+  const searchVideos = useSearchVideos()
 
   const [searchResult, setSearchResult] = useState<SearchResult[]>(
     savedResult ?? convertToSearchResult(rawVideos)
   )
 
-  const onChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      const word = e.target.value
-      setArchiveValue(word)
-      setCanClick(false)
+  const search = useCallback(
+    (word: string, isUserSearch: boolean) => {
       delayProcess(async () => {
+        setLoading(true)
+        setArchiveValue(word)
         let result: SearchResult[]
         if (word.length === 0) {
           result = convertToSearchResult(rawVideos)
         } else {
-          const targetVideos = await searchVideos(rawVideos, word)
+          const targetVideos = await searchVideos(rawVideos, word, isUserSearch)
           result = convertToSearchResult(targetVideos)
         }
         setSearchResult(result)
         setSavedResult(result)
         setCanClick(true)
+        setLoading(false)
       }, 500)
     },
     [rawVideos]
+  )
+
+  const onChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      if (loading) {
+        return
+      }
+      const word = e.target.value
+      setCanClick(false)
+      search(word, isUserSearch)
+    },
+    [loading, isUserSearch, search]
   )
 
   const selectVideo = async (videoId: string) => {
@@ -66,26 +76,23 @@ export const useArchiveSearch = () => {
     }
     setArchiveVideoId(videoId)
     setMainType('ranking')
-    if (isGagheringChatAgain && channelId !== null) {
-      setReloadBackgroundFlag(true)
-      await window.api.gatherChatAgain(channelId, videoId)
-      const rankingObject = await window.api.fetchRanking(channelId, 'archive', videoId)
-      setRanking(rankingObject)
-      setReloadBackgroundFlag(false)
-    }
   }
 
-  const toggleGatheringCheck = () => {
-    setIsGatheringChatAgain((value) => !value)
+  const toggleUserSearch = () => {
+    setIsUserSearch((value) => {
+      search(archiveValue, !value)
+      return !value
+    })
   }
 
   return {
+    loading,
     archiveValue,
     searchResult,
     onChange,
     selectVideo,
-    isGagheringChatAgain,
-    toggleGatheringCheck
+    isUserSearch,
+    toggleUserSearch
   }
 }
 
@@ -108,57 +115,70 @@ const delayProcess = (callback: Function, delay: number) => {
   process = window.setTimeout(callback, delay)
 }
 
-const searchVideos = async (videos: Video[], rawWord: string) => {
-  let normalWords = [] as string[]
-  let commandWords = [] as string[]
-  for (const splitByHalfSpace of rawWord.split(' ')) {
-    for (const splitByFullSpace of splitByHalfSpace.split('　')) {
-      if (splitByFullSpace.startsWith('from:') || splitByFullSpace.startsWith('until:')) {
-        commandWords = [...commandWords, splitByFullSpace]
-      } else {
-        normalWords = [...normalWords, splitByFullSpace]
+const useSearchVideos = () => {
+  const channelId = useRecoilValue(channelIdAtom)
+
+  const searchByNormalWords = async (videos: Video[], words: string[], isUserSearch: boolean) => {
+    if (channelId !== null && isUserSearch) {
+      const videoIds = await window.api.searchVideoIdsByUser(channelId, words)
+      console.log(videoIds)
+      return videos.filter(({ id }) => videoIds.includes(id))
+    }
+    let hiraganaWords = [] as string[]
+    for (const word of words) {
+      if (!word) {
+        continue
+      }
+      const hiraganaWord = await window.api.convertToHiragana(word)
+      hiraganaWords = [...hiraganaWords, hiraganaWord]
+    }
+    return videos.filter(({ hiraganaTitle }) =>
+      hiraganaWords.every((word) => hiraganaTitle.includes(word))
+    )
+  }
+
+  const searchByCommand = (video: Video[], commands: string[]) => {
+    const from = commands.find((command) => command.startsWith('from:'))
+    const until = commands.find((command) => command.startsWith('until:'))
+    let resultVideos = [...video]
+    if (from !== undefined) {
+      const time = from.split(':')[1]
+      const targetDayjs = dayjs(time)
+      if (targetDayjs.isValid()) {
+        resultVideos = resultVideos.filter(({ publishedAt }) =>
+          dayjs(publishedAt).isAfter(targetDayjs)
+        )
       }
     }
+    if (until !== undefined) {
+      const time = until.split(':')[1]
+      const targetDayjs = dayjs(time)
+      if (targetDayjs.isValid()) {
+        resultVideos = resultVideos.filter(({ publishedAt }) =>
+          dayjs(publishedAt).isBefore(targetDayjs)
+        )
+      }
+    }
+    return resultVideos
   }
-  const results = await searchByNormalWords(searchByCommand(videos, commandWords), normalWords)
-  return results
-}
 
-const searchByNormalWords = async (videos: Video[], words: string[]) => {
-  let hiraganaWords = [] as string[]
-  for (const word of words) {
-    if (!word) {
-      continue
+  return async (videos: Video[], rawWord: string, isUserSearch: boolean) => {
+    let normalWords = [] as string[]
+    let commandWords = [] as string[]
+    for (const splitByHalfSpace of rawWord.split(' ')) {
+      for (const splitByFullSpace of splitByHalfSpace.split('　')) {
+        if (splitByFullSpace.startsWith('from:') || splitByFullSpace.startsWith('until:')) {
+          commandWords = [...commandWords, splitByFullSpace]
+        } else {
+          normalWords = [...normalWords, splitByFullSpace]
+        }
+      }
     }
-    const hiraganaWord = await window.api.convertToHiragana(word)
-    hiraganaWords = [...hiraganaWords, hiraganaWord]
+    const results = await searchByNormalWords(
+      searchByCommand(videos, commandWords),
+      normalWords,
+      isUserSearch
+    )
+    return results
   }
-  return videos.filter(({ hiraganaTitle }) =>
-    hiraganaWords.every((word) => hiraganaTitle.includes(word))
-  )
-}
-
-const searchByCommand = (video: Video[], commands: string[]) => {
-  const from = commands.find((command) => command.startsWith('from:'))
-  const until = commands.find((command) => command.startsWith('until:'))
-  let resultVideos = [...video]
-  if (from !== undefined) {
-    const time = from.split(':')[1]
-    const targetDayjs = dayjs(time)
-    if (targetDayjs.isValid()) {
-      resultVideos = resultVideos.filter(({ publishedAt }) =>
-        dayjs(publishedAt).isAfter(targetDayjs)
-      )
-    }
-  }
-  if (until !== undefined) {
-    const time = until.split(':')[1]
-    const targetDayjs = dayjs(time)
-    if (targetDayjs.isValid()) {
-      resultVideos = resultVideos.filter(({ publishedAt }) =>
-        dayjs(publishedAt).isBefore(targetDayjs)
-      )
-    }
-  }
-  return resultVideos
 }

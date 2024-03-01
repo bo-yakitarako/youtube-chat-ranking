@@ -33,7 +33,9 @@ export const SearchDetailDialog: React.FC<Props> = ({ open, setOpen }) => {
         <DialogContentText>
           半角スペースか全角スペースで区切って動画タイトルに複数の単語が含まれているかを検索しますわよ
           <br />
-          漢字の読みがなを打ってもちゃんと絞り込んでくれるのだ(そのせいで数字も読みがなで検索してしまうがなガハハ)
+          ユーザー検索にチェックを入れると、動画タイトル検索ではなく、検索欄に入力したユーザーがチャットしているアーカイブのみを表示するのだ。
+          <br />
+          ユーザー名は一字一句違わないようにしてね
         </DialogContentText>
         <Typography
           component="h2"

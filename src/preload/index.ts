@@ -23,8 +23,8 @@ const api = {
   reloadBackground: (channelId: string) => ipcRenderer.invoke('reloadBackground', channelId),
   setLiveChannelId: (channelId: string) => ipcRenderer.invoke('setLiveChannelId', channelId),
   getCachedUsers: (channelId: string) => ipcRenderer.invoke('getCachedUsers', channelId),
-  gatherChatAgain: (channelId: string, videoId: string) =>
-    ipcRenderer.invoke('gatherChatAgain', channelId, videoId)
+  searchVideoIdsByUser: (channelId: string, words: string[]) =>
+    ipcRenderer.invoke('searchVideoIdsByUser', channelId, words)
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to
