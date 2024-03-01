@@ -4,15 +4,26 @@ import { Ranking } from './ranking/Ranking'
 import { NoChannel } from './preparing/NoChannel'
 import { NoVideos } from './preparing/NoVideos'
 import { NoChats } from './preparing/NoChats'
-import { useRecoilValue } from 'recoil'
-import { darkModeAtom } from '../modules/store'
+import { useRecoilValue, useSetRecoilState } from 'recoil'
+import { darkModeAtom, videosAtom } from '../modules/store'
 import { ArchiveSearch } from './archiveSearch/ArchiveSearch'
+import { useEffect } from 'react'
+import { VideoObject } from '../../../preload/dataType'
 
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 export const Main: React.FC = () => {
   const mainType = useMainType()
   const darkMode = useRecoilValue(darkModeAtom)
+  const setVideos = useSetRecoilState(videosAtom)
+
+  useEffect(() => {
+    // @ts-ignore バス間違えた
+    window.ipcRenderer.on('videos', (e, videos: VideoObject) => {
+      setVideos(videos)
+    })
+  }, [])
+
   return (
     <Wrapper darkMode={darkMode}>
       {mainType === 'noChannel' && <NoChannel />}

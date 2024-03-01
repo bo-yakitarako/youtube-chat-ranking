@@ -42,6 +42,7 @@ export const useRanking = () => {
           authorChannelId: userId,
           name,
           chatCount: count,
+          rank: 0,
           firstChatDate: cached
             ? dayjs.unix(cached.firstChatTime).format('YYYY/MM/DD')
             : '初めまして',

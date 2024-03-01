@@ -119,6 +119,7 @@ export type RankingRow = {
   authorChannelId: string
   name: string
   chatCount: number
+  rank: number
   firstChatDate: string
   lastChatDate: string
 }

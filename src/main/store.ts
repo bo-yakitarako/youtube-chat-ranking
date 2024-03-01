@@ -197,6 +197,7 @@ const assignUserInfoForRanking = (
       authorChannelId: userId,
       name: countData[userId].name,
       chatCount: countData[userId].count,
+      rank: 0,
       firstChatDate: dayjsFirstChat.format('YYYY/MM/DD'),
       lastChatDate: dayjsLastChat.format('YYYY/MM/DD')
     }
@@ -270,4 +271,17 @@ export const setLiveStore = (channelId: string, value: LiveStore) => {
 
 export const deleteLiveStore = (channelId: string) => {
   liveStore.delete(channelId)
+}
+
+export const deleteVideo = (channelId: string, videoId: string) => {
+  const videos = videoStore.get(channelId) ?? {}
+  const chatCounts = chatCountsStore.get(channelId) ?? {}
+  if (videoId in videos) {
+    delete videos[videoId]
+    videoStore.set(channelId, videos)
+  }
+  if (videoId in chatCounts) {
+    delete chatCounts[videoId]
+    chatCountsStore.set(channelId, chatCounts)
+  }
 }

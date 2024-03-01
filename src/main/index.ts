@@ -121,7 +121,7 @@ ipcMain.handle('getVideosFromYouTube', async (e, channelId: string) => {
 
 // @ts-ignore e～～～そこをなっ！しっかりと意識してやっていきましょう。OK？
 ipcMain.handle('gatherChats', async (e, channelId: string, videoId: string) => {
-  const chatCounts = await gatherArchiveChats(videoId)
+  const chatCounts = await gatherArchiveChats(channelId, videoId)
   if (chatCounts === null) {
     return null
   }
@@ -149,7 +149,7 @@ ipcMain.handle('reloadBackground', async (e, channelId: string) => {
   const liveVideos = await getLiveVideosFromYouTube(channelId)
   mergeVideo(channelId, liveVideos)
   for (const { id } of liveVideos) {
-    const chatCounts = await gatherArchiveChats(id)
+    const chatCounts = await gatherArchiveChats(channelId, id)
     if (chatCounts === null) {
       continue
     }
@@ -170,7 +170,7 @@ ipcMain.handle('getCachedUsers', (e, channelId: string) => {
 
 // @ts-ignore 特にお前ら3人。わかったか。
 ipcMain.handle('gatherChatAgain', async (e, channelId: string, videoId: string) => {
-  const chatCounts = await gatherArchiveChats(videoId)
+  const chatCounts = await gatherArchiveChats(channelId, videoId)
   if (chatCounts !== null) {
     mergeChats(channelId, videoId, chatCounts)
   }

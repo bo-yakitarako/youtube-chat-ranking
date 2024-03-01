@@ -6,7 +6,14 @@ import { LiveChat } from 'youtube-chat'
 import { BrowserWindow } from 'electron'
 import { getStream } from 'yt-dm-stream-url'
 import { ArchiveChat, ChatCounts, LiveStore } from '../../preload/dataType'
-import { getLiveStore, deleteLiveStore, setLiveStore, getCachedUsers } from '../store'
+import {
+  getLiveStore,
+  deleteLiveStore,
+  setLiveStore,
+  getCachedUsers,
+  deleteVideo,
+  getVideos
+} from '../store'
 
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
@@ -22,11 +29,14 @@ let liveChannelId = ''
 let liveChat: LiveChat | null = null
 let liveStore: LiveStore | null = null
 
-export const gatherArchiveChats = (videoId: string) => {
+export const gatherArchiveChats = (channelId: string, videoId: string) => {
   return new Promise<ChatCounts | null>((resolve) => {
     const cp = exec(command(videoId), (err, stdout, stderr) => {
       if (err !== null) {
         console.error(stderr)
+        deleteVideo(channelId, videoId)
+        const videos = getVideos(channelId)
+        mainWindow.webContents.send('videos', videos)
         resolve(null)
         return
       }
