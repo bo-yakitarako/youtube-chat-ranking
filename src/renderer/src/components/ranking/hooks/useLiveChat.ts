@@ -24,17 +24,25 @@ export const useLiveChat = () => {
 
   useEffect(() => {
     // @ts-ignore なんなんマジで
-    window.ipcRenderer.on('liveChatCounts', (e, chatCounts: ChatCounts) => {
+    const liveChatCounts = window.ipcRenderer.on('liveChatCounts', (e, chatCounts: ChatCounts) => {
       setLiveChatCounts(chatCounts)
     })
     // @ts-ignore まじきっしょいわアイツ
-    window.ipcRenderer.on('liveVideo', (e, video: Video) => {
+    const liveVideo = window.ipcRenderer.on('liveVideo', (e, video: Video) => {
       setLiveVideo(video)
     })
-    // @ts-ignore それはないっしょ
-    window.ipcRenderer.on('cachedusers', (e, cachedusers: RankingUserObject) => {
-      setCachedUsers(cachedusers)
-    })
+    const cachedUsers = window.ipcRenderer.on(
+      'cachedusers',
+      // @ts-ignore それはないっしょ
+      (e, cachedusers: RankingUserObject) => {
+        setCachedUsers(cachedusers)
+      }
+    )
+    return () => {
+      liveChatCounts.removeAllListeners('liveChatCounts')
+      liveVideo.removeAllListeners('liveVideo')
+      cachedUsers.removeAllListeners('cachedusers')
+    }
   }, [])
 
   useEffect(() => {
