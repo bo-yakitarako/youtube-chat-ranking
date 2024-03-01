@@ -176,7 +176,3 @@ process.on('SIGINT', cleanup)
 process.on('SIGTERM', cleanup)
 process.on('SIGQUIT', cleanup)
 process.on('uncaughtException', cleanup)
-
-export const gatherLiveChats = () => {
-  // todo
-}

@@ -146,17 +146,21 @@ type HiraganaResponse = {
 }
 
 export const convertToHiragana = async (japaneseText: string) => {
-  const { data } = await axios<HiraganaResponse>({
-    method: 'post',
-    url: HIRAGANA_URL,
-    headers: {
-      'Content-Type': `application/json`
-    },
-    data: {
-      app_id: GOO_LAB_API_KEY,
-      sentence: japaneseText,
-      output_type: OUTPUT_TYPE
-    }
-  })
-  return data.converted.replaceAll(' ', '').replaceAll('　', '')
+  try {
+    const { data } = await axios<HiraganaResponse>({
+      method: 'post',
+      url: HIRAGANA_URL,
+      headers: {
+        'Content-Type': `application/json`
+      },
+      data: {
+        app_id: GOO_LAB_API_KEY,
+        sentence: japaneseText,
+        output_type: OUTPUT_TYPE
+      }
+    })
+    return data.converted.replaceAll(' ', '').replaceAll('　', '')
+  } catch (e) {
+    return ''
+  }
 }
