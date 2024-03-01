@@ -121,7 +121,6 @@ const useSearchVideos = () => {
   const searchByNormalWords = async (videos: Video[], words: string[], isUserSearch: boolean) => {
     if (channelId !== null && isUserSearch) {
       const videoIds = await window.api.searchVideoIdsByUser(channelId, words)
-      console.log(videoIds)
       return videos.filter(({ id }) => videoIds.includes(id))
     }
     let hiraganaWords = [] as string[]
