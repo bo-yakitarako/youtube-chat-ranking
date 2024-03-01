@@ -304,7 +304,7 @@ export const searchVideoIdsByUser = (channelId: string, words: string[]) => {
       }
     }
   })
-  if (userIds.length === 0) {
+  if (userIds.length !== words.length) {
     return []
   }
   let resultVideoIds = [] as string[]

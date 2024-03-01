@@ -162,13 +162,14 @@ const useSearchVideos = () => {
   }
 
   return async (videos: Video[], rawWord: string, isUserSearch: boolean) => {
-    let normalWords = [] as string[]
+    const { doubleQuotationWords, restWord } = extractDoubleQuotation(rawWord)
+    let normalWords = [...doubleQuotationWords]
     let commandWords = [] as string[]
-    for (const splitByHalfSpace of rawWord.split(' ')) {
+    for (const splitByHalfSpace of restWord.split(' ')) {
       for (const splitByFullSpace of splitByHalfSpace.split('　')) {
         if (splitByFullSpace.startsWith('from:') || splitByFullSpace.startsWith('until:')) {
           commandWords = [...commandWords, splitByFullSpace]
-        } else {
+        } else if (splitByFullSpace.length > 0) {
           normalWords = [...normalWords, splitByFullSpace]
         }
       }
@@ -180,4 +181,27 @@ const useSearchVideos = () => {
     )
     return results
   }
+}
+
+const extractDoubleQuotation = (rawWord: string) => {
+  const randomString = generateRandomString(32)
+  const replacedWord = rawWord.replaceAll('\\"', randomString)
+  const splitByDoubleQuotation = replacedWord.split('"')
+  let doubleQuotationWords = [] as string[]
+  for (let i = 1; i < splitByDoubleQuotation.length; i += 1) {
+    const word = splitByDoubleQuotation.splice(i, 1)[0]
+    if (word.length === 0) {
+      continue
+    }
+    doubleQuotationWords = [...doubleQuotationWords, word.replaceAll(randomString, '"')]
+  }
+  const restWord = splitByDoubleQuotation.join('').replaceAll(randomString, '"')
+  return { doubleQuotationWords, restWord }
+}
+
+const generateRandomString = (digit: number) => {
+  const S = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+  return Array.from(crypto.getRandomValues(new Uint32Array(digit)))
+    .map((n) => S[n % S.length])
+    .join('')
 }
