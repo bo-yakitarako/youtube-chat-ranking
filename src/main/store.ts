@@ -265,6 +265,8 @@ export const getLiveStore = (channelId: string) => {
   return liveStore.get(channelId)
 }
 
+export const hasLiveStore = (channelId: string) => liveStore.has(channelId)
+
 export const setLiveStore = (channelId: string, value: LiveStore) => {
   liveStore.set(channelId, value)
 }

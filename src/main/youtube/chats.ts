@@ -12,7 +12,8 @@ import {
   setLiveStore,
   getCachedUsers,
   deleteVideo,
-  getVideos
+  getVideos,
+  hasLiveStore
 } from '../store'
 
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
@@ -113,6 +114,9 @@ export const observeLive = (window: BrowserWindow) => {
         deleteLiveStore(liveChannelId)
         setLiveChat(liveChannelId)
         mainWindow.webContents.send('finishLive')
+      }
+      if (isFinish && hasLiveStore(liveChannelId)) {
+        deleteLiveStore(liveChannelId)
       }
     })
     if (isLive || liveChat === null) {

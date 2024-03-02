@@ -33,7 +33,7 @@ export const RankingHeader: React.FC = () => {
         >
           <Info />
         </IconButton>
-        {durationMode === 'custom' && (
+        {durationMode === 'custom' ? (
           <>
             <StyledPicker
               label="最初の日"
@@ -53,15 +53,16 @@ export const RankingHeader: React.FC = () => {
               disableFuture
             />
           </>
+        ) : (
+          <Button
+            variant="outlined"
+            size="large"
+            onClick={() => setMainType('archiveSearch')}
+            disabled={reloadBackground}
+          >
+            {reloadBackground ? '更新中はちょいお待ちね' : 'アーカイブ選択'}
+          </Button>
         )}
-        <Button
-          variant="outlined"
-          size="large"
-          onClick={() => setMainType('archiveSearch')}
-          disabled={reloadBackground}
-        >
-          {reloadBackground ? '更新中はちょいお待ちね' : 'アーカイブ選択'}
-        </Button>
         <StyledSelect value={durationMode} onChange={onSelect} disabled={reloadBackground}>
           {(Object.keys(durationTitleDict) as DurationMode[]).map((mode) => (
             <MenuItem key={mode} value={mode}>
